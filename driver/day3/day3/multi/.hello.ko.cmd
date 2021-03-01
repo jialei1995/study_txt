@@ -1,0 +1,1 @@
+cmd_/mnt/hgfs/arm-test/driver/20011-driver/day3/multi/hello.ko := ld -r -m elf_i386 -T /usr/src/linux-headers-3.5.0-23-generic/scripts/module-common.lds --build-id  -o /mnt/hgfs/arm-test/driver/20011-driver/day3/multi/hello.ko /mnt/hgfs/arm-test/driver/20011-driver/day3/multi/hello.o /mnt/hgfs/arm-test/driver/20011-driver/day3/multi/hello.mod.o

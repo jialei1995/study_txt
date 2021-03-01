@@ -1,0 +1,205 @@
+问题：
+   1 裸机编程和系统编程的区别？优缺点？
+      裸机开发：  运行速度快，操作直接（不安全）
+                          设备成本低
+                          处理问题单一（单任务）
+      系统开发：多任务，开发效率高
+                       安全
+                       方便                 
+   2 选什么系统？Linux  ucos-ii rt-thread freertos winCE VxWorks
+      Linux
+   3 移什么？bootloader  linux(内核&设备树)  rootfs
+   4 怎么移？(选 改 加)
+     环境搭建：pc ：nfs tftpd    
+     开发板:网络参数 启动参数
+day1:linux开发介绍 移植环境搭建
+day2:bootloader
+day3:bootloader启动流程  Linux内核 设备树
+day4：内核启动流程 内核代码的调试方法
+day5:rootfs 制作 移植
+
+
+day1:
+1 linux开发介绍 
+2 移植环境搭建
+   1  pc(虚拟机):   tftpd-hpa：网络文件传送服务程序
+                             nfs:网络文件服务系统
+                             作用：将虚拟机上的目录共享给开发板使用      
+  2  开发板：u-boot(tftp )
+       网络项  ipaddr serverip gatewayip netmask
+       自启动参数bootcmd=tftp 410000 uImage;/tftp 420000 exynos4412-fs4412.dtb;/bootm 410000 - 42000000
+        setenv bootargs root=/dev/nfs nfsroot=192.168.1.249:/source4/rootfs rw console=ttySAC2,115200 init=/linuxrc ip=192.168.1.101  
+ fs4412# ping  192.168.1.249   ----> is alive   
+            
+             
+       实验二：第四个实验增加以下项：
+      #setenv bootargs root=/dev/ram  rw console=ttySAC2,115200  init=/linuxrc  
+
+day2:bootloader
+ 1  bootloader：初始化基本硬件；加载、引导内核
+    boot:启动，主要是指硬件设备的初始化
+    loader:加载器（装载机）将flash里的内核文件搬运到内存中
+bootloader不属于操作系统
+   bootloader的启动模式： 自启动模式  交互模式
+  2 U-boot指令---》setenv ipaddr   ping
+  3 u-boot的启动流程
+    bl0---->bl1----->bl2---->u-boot.bin(u-boot-2013.01)  ---->u-boot-fs4412.bin
+                  bin           bin
+   build.sh--->
+  4 实验：制作SD卡--->u-boot-fs4412.bin
+sudo dd iflag=dsync oflag=dsync if=/home/farsight/u-boot-fs4412.bin of=/dev/sdb seek=1
+      u-boot的移植：
+
+day3 :
+  1 u-boot的启动
+   b  reset:
+        bl save_boot_params:保存启动参数
+        切换处理器的工作模式
+        设置异常向量表的位置
+        bl cpu_init_cp15(协处理器执行函数)：配置协处理器中的相关寄存器来设置
+                               处理器的MMU、cache和快表等
+        bl cpu_init_crit  初始化开发板相关内容
+         b  _main: 
+                    bl   board_init_f  :根据配置对全局信息结构体GD进行初始化
+                                              gd结构体用来保存u-boot的一些全局信息（包含环境变量）
+                   b   relocate_code ：重定位(本质上是代码的搬移)。把u-boot拷贝到sdram的另一个位置继续运行，为kernel
+                                                     腾出低端空间。
+                   ldr pc, =board_init_r
+                                board_init_r：初始化基本硬件；
+                                                         获取几秒钟后运行剩余的u-boot.bin代码
+                                                         加载引导内核启动
+
+u-boot运行的两个阶段：
+第一阶段
+设置CPU工作模式、中断、MMU……
+内存初始化
+自搬运
+设置堆栈、清空BSS段
+
+第二阶段
+初始化GPIO、串口、网口……
+执行命令
+加载内核
+
+2   Linux 内核的移植
+  linux是一个操作系统内核，不是一个操作系统
+  ubuntu(32):是一个linux操作系统，包括Linux内核+工具集+各种库+桌面管理器+应用程序
+   Linux内核：不是一套完整的操作系统
+  
+   包含5个模块：进程管理+内存管理+fs(vfs)+网络协议（TCP/IP协议栈）+设备管理
+  
+3 内核的移植
+  make clean:清除。用于删除大多数的编译生成文件，会保留内核配置文件.config
+                        只删除了前一次编译过程中的残留数据。
+  make mrproper:适当清除。范围比make clean大，删除所有的编译生成文件、
+                         内核配置文件和各种备份文件。（第一次执行内核编译的时候会用）                    
+  make distclean:彻底清除。删除make mrproper删除的所有文件，还删除编译
+                           备份文件和补丁文件，也可删除Makefile。
+   make clean< make mrproper<make distclean
+
+   make uImage:   linux3.14---->编译成vmlinux---->压缩zImage---->加64Byte头uImage
+                                                       62.4M                      2.7M (2757304 )      2.7M(2757368)   
+   make menuconfig--->配置选项菜单  y：选中 n：未选择 m:以模块的形式选中 
+   
+   menuconfig:配置选项菜单
+   Kconfig:    是生成  menuconfig菜单的源码    
+   .config:是执行 menuconfig后的实际配置文件
+    Kconfig语法：
+    menu~endmenu:用于生成一个菜单选项
+    source:用于读取另外一个Kconfig文件内容。类似于C的#include 
+    choice:将多个类似的配置选项组合在一起，供用户单选或者多选
+
+   linux3.14--->源码
+    1 make mrproper
+    2 make exynos_defconfig
+       make menuconfig---->选择要参与编译的代码模块
+    3 make uImage:vmlinux--->zImage--->uImage
+     
+  bootloadler   内核  设备树  rootfs
+day4:
+1   内核的启动流程
+     第一阶段：(汇编)
+                   1   解压内核----》vmlinux
+     第二阶段：(汇编)
+	     1  检查cpu和机器类型
+                       2 进行堆栈、mmu等关键组件的初始化
+     第三阶段：(C语言)
+	     1 打印内核信息
+                       2 执行各模块的初始化
+                       3 挂在根文件系统
+               	     4  启动第一个Init进程
+    bootargs:fs 调度第一个用户进程init=/linuxrc
+
+    人--设备：配置---set
+                     获取---get
+                     主动上报信息-----告警---》trap(提前定义好的)
+                    
+2   设备树
+     设备+树：描述设备硬件信息的一种数据结构（一棵树）
+    母设备：子设备 串口 网口 sd卡 usb  ADC  GPIO。。。。
+    树根/        树叶子/ node 
+     组织---》文件---》设备树文件
+    exynos4412-fs4412.dts--->/树根+多个节点（node）---->fs4412板卡的硬件组织信息
+    设备树文件-----》uImage
+     linux内核代码从3.0以后引入了设备树概念，内核代码的信息和逻辑分开了
+     linux内核代码从3.0以前没有设备树的说法，内核代码的信息和逻辑是混合的
+  dt:Device Tree
+   dtsi:各个板卡公共部分描述信息，相当于C的头文件
+   dts:Device Tree source-----》源代码文件
+   dtb:Device Tree binary--->可以下载使用
+    reg=<地址1 长度1 地址2 长度2 ...>;
+    每一个可编址的设备都有一个reg，它是一个元组表，形式为reg=<地址1 长度1 地址2 长度2 ...>
+    每个元组都表示该设备使用的一个地址范围。
+
+  实验5：
+     网卡设备树节点：
+    DM9000_IRQ(DM9000)---->U8--->con5--->con4---->u1a(gpx0_6)
+    interrupt-parent:中断控制器节点指针。设备节点通过它指定它所依附的中断控制器
+    interrupt:描述可触发的中断信号。用到了中断的设备节点通过它指定中断号、触发方式
+ 
+   程序=代码+数据=信息+逻辑
+
+3   内核代码的调试方法
+     1 led点灯法
+     2 打印内核信息或驱动信息
+     3 查看opps信息
+     4 硬件调试器：JTAG 工具
+
+   2 打印内核信息或驱动信息:printf----->标准C库
+    内核代码解压前:puts
+    解压内核代码时：putstr
+    内核代码解压后，且串口初始化前：printascii
+    串口初始化后：printk
+   printk---printf
+    printk(KERN_EMERG"hello world");
+    printf("hello world\r\n") ;---->  终端                 
+    n:打印级别（0-7）
+    默认打印级别是4，可以通过修改源码该该值
+    printk只能将高于默认打印级别的信息输出串口
+    在设备上：
+    #：cat /proc/sys/kernel/printk----》通过该文件可以内核中printk函数的默认打印级别
+         4   4  1  7
+          第一个4是默认打印级别
+    #dmesg---->可以查看完整的控制台打印信息
+    #cat /proc/kmsg--->实时查看控制台的打印信息
+    #echo "7 4 1 7">/proc/sys/kernel/printk--->修改默认打印级别为7
+      (若系统不重启，该修改值一直有效)
+
+   3  查看oops信息
+    oops:惊讶的感叹词，内核代码发生了严重的错误时会向用户报告该错误
+              同时会给用户返回错误的内存地址。
+   产生oops的原因：内存访问越界
+	                非法指令
+	               使用了NULL指针
+	               使用了不正确的指针值
+     实验十：
+     1 在Linux内核源码文件中制造一个OOPS错误
+        在  drivers/net/ethernet/davicom/dm9000.c文件的1413行
+            添加  int *p=NULL;*p=0xff;
+     2  编译内核 make uImage
+     3  将uImage下载到开发板运行，在内核启动过程中出错了，报告了oops错误
+          并返回了错误内存地址，查看 pc:[<c0278ba8>] 
+     4 在内核源码中用arm-none-linux-gnueabi-add2line去定位错误的地址对应的
+        源文件和行号
+       linux3-14$:arm-none-linux-gnueabi-add2line -e vmlinux 0xc0278ba8
+    

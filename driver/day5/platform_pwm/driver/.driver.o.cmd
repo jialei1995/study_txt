@@ -1,0 +1,1 @@
+cmd_/mnt/hgfs/inclass/drive/day5/platform_pwm/driver/driver.o := arm-none-linux-gnueabi-ld -EL    -r -o /mnt/hgfs/inclass/drive/day5/platform_pwm/driver/driver.o /mnt/hgfs/inclass/drive/day5/platform_pwm/driver/plat_driver.o /mnt/hgfs/inclass/drive/day5/platform_pwm/driver/hello.o 

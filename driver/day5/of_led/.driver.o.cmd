@@ -1,0 +1,1 @@
+cmd_/mnt/hgfs/inclass/drive/day5/of_led/driver.o := arm-none-linux-gnueabi-ld -EL    -r -o /mnt/hgfs/inclass/drive/day5/of_led/driver.o /mnt/hgfs/inclass/drive/day5/of_led/plat_driver.o /mnt/hgfs/inclass/drive/day5/of_led/hello.o 

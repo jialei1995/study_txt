@@ -1,0 +1,1 @@
+-T ./map.lds -mcpu=arm920t -mthumb-interwork -Wl -o hunhe.elf "start.o" "main.o" -nostartfiles -lm

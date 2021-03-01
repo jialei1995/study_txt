@@ -1,0 +1,2 @@
+Dependencies for Project 'huibian', Target 'Target 1': (DO NOT MODIFY !)
+F (.\start.s)(0x5EC885D8)(-mcpu=arm920t --gdwarf-2 -mthumb-interwork --MD start.d -IE:/software/Keil4/ARM/CMSIS/Include -IE:/software/Keil4/ARM/Inc/Samsung -o start.o)

@@ -1,0 +1,1786 @@
+字符串：
+	%X输出ABCDE大写x输出的小写
+码元传输速率为6000baud，若1个码元携带2bit信息，则信息传输速度为12000bit/s	baud就是波特率
+
+lseek()操作成功时返回值的含义是 (  )
+A  新的文件位移量
+
+
+exec函数族可以创建一个新的进程来执行指定的程序 b
+A  正确
+B  错误
+
+每个进程的进程号和父进程号在进程执行期间不会改变b
+
+A  正确
+B  错误
+
+int (*s[10])(int) 函数指针数组，每个指针指向一个 int func(int param) 的函数
+
+
+某一网络子网掩码为255.255.255.248，则该网络能连接( 6 )台主机：
+    转为二进制11111111.11111111.11111111.11111000，网络号29，这是29位比特的子网掩码，剩下3位，也就是有8个IP地址，
+但是有两个作为了网络地址和广播地址，所以只有6个能分配个主机。
+
+ICMP 控制协议，控制网络痛不痛--ping用的就值这个，不传输数据。就看痛不痛
+DNS www.baidu.com域名解析为ip
+
+物理层：bit流
+数据链路层：帧
+网络层：报文分组
+
+1） 算术运算
+简单来说，就是通过普通的+和-运算来实现。代码如下：
+int a,b;
+a=10;b=12;
+a=b-a; //a=2;b=12
+b=b-a; //a=2;b=10
+a=b+a; //a=12;b=10
+它的原理是：把a、b看做数轴上的点，围绕两点间的距离来进行计算。
+
+    for(int i = 0;i < 10;i++)
+    {
+        cout<<"heh"<<" ";
+    }
+    i = 9;//c++执行到这里会报错。i只能在循环内部使用
+
+*************************************//约瑟夫环，链表实现*******************8
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+typedef struct ListNode {
+    int val;
+    struct ListNode *next;
+}ListNode;
+
+void trave(ListNode* phead)
+{
+    int i = 5;
+    ListNode* pmove = phead->next;
+    while(i--)
+    {
+        printf("%d-->",pmove->val);
+        pmove = pmove->next;
+    }
+    printf("\n");
+}
+ListNode * ListInit()
+{
+    ListNode* pHead = (ListNode*)malloc(sizeof(ListNode));
+    pHead->next = NULL;
+    ListNode *pTail = pHead;
+    int i = 0;
+    for(;i < 5;i++)
+    {
+        ListNode*pNew = (ListNode *)malloc(sizeof(ListNode));
+        pNew->val = i;
+        pNew->next = pHead->next;
+        pTail->next = pNew;
+        pTail = pNew;
+    }
+}
+int main ()
+{
+    ListNode* pHead = (ListNode*)malloc(sizeof(ListNode));
+    pHead->next = NULL;
+    ListNode *pTail = pHead;
+    int i = 0;
+    ListNode*pNew = NULL;
+    for(;i < 5;i++)
+    {
+         pNew = (ListNode *)malloc(sizeof(ListNode));
+        pNew->val = i;
+        pTail->next = pNew;
+        pTail = pNew;
+        pTail->next = pHead->next;
+    }
+    trave(pHead);
+   ListNode * p = pHead->next;
+   ListNode * q = pTail;
+   i = 1;
+   int m = 3;
+   while(p != q)
+   {
+       if(i%3 == 0)
+       {
+           printf("%d->",p->val);
+           free(p);
+           p = q->next;i++;
+           //i = 1;         每次都加1还是死了人就重新开始
+       }else
+       {
+           q = p;
+           p = p->next;
+           i++;
+       }
+   }
+
+   return(0);
+}
+
+    FILE *f;
+    int i = 0x12345678;
+    f = fopen("0327_bin.txt","w+");
+    fwrite(&i,4,1, f);
+
+    return 0;           文本显示的乱码的自己看不懂在vim 下， 可以16进制查看文件：只有文本才会正常显示，数字（16进制）都是这种的
+        ：%!xxd ---- 查看
+获取文件大小：
+    struct stat info;   
+    stat(argv[1], &info);   结构体stat用来获取指定路径的文件或者文件夹的信息
+    printf("缓冲区大小： %ld\n",info.st_size);  
+    
+测试全缓存缓冲区大小：
+//结构体stat用来获取指定路径的文件或者文件夹的信息
+    while(1){       “a”就是a的地址  平常这里是buf地址                         
+        fwrite("a",1,1,fp);            //将若干块数据写入指定的文件
+        stat(“1.txt”, &info);
+        if(info.st_size > 0)
+        break;
+    }   
+}
+
+char *GetMemory(void)
+{
+char p[] = "hello world";
+return p;   指针指向的栈内存
+}
+void Test(void)
+{
+char *str = NULL;
+str = GetMemory();
+printf(str);     访问野指针，不会回报错
+}
+请问运行Test 函数会有什么样的结果？答：可能是乱码。因为 GetMemory 返回的是指向“栈内存”的指针，该指针的地址不是NULL，但
+其原现的内容已经被清除， 新内容不可知。
+
+
+快排
+void QSort(int * arr,int low,int high)
+{
+    int pivote = 0;int i = low,j = high;不能直接操作原有数据，不然不能正常递归了
+    if(low < high)  这里用i用j都行，后面那些必须用i与j
+    {
+        pivote = arr[low];              pivote在函数中第一个作用
+        while(i<j)  这里必须用i<j，因为low与high一直没变化的
+        {
+            while(i<j && arr[j]>=pivote) j--;
+            arr[i] = arr[j];
+            while(i<j && arr[i]<=pivote) i++;
+            arr[j] = arr[i];
+        }
+        arr[i] = pivote;
+        pivote = i;                 pivote在函数中第2个作用
+        QSort(arr,low,pivote-1);//low就会改变
+        QSort(arr,pivote+1,high);
+    }
+}
+
+
+gcc 的参数“ -L ”，“ -l ”“-I ”分别是什么意义？举例说明。
+-L DIR 指定额外的库函数搜索路径    动态库
+
+命名管道 (FIFO)
+1.FIFO 文件存在于文件系统中，但FIFO 中的内容却存放在内存中
+读数据是一次性操作，一旦被读，就从FIFO 中被抛 弃，释放空间以便写更多的数据。
+共享 FIFO 的进程执行完所有的 I/O 操作以后， FIFO 将继续保存在文件系统中以便以后使用
+
+
+15. 生产者消费者：
+有一仓库， 生产者负责生产产品， 并放入仓库， 消费者从仓库中拿走产品
+( 消费 )
+要求：
+仓库中每次只能进入一人 ( 生产者或消费者 ) 。
+仓库中可存放产品的数量最多
+10个, 当仓库放满时， 生产者不能再放入产品。
+当仓库空时，消费者不能从中取出产品。
+生产、消费速度不同。
+// 信号量 --- 线程间通信
+// “生产者消费者”
+问题
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<semaphore.h>
+#include<pthread.h>
+#define
+msleep(x)
+usleep(x*1000)
+#define PRODUCT_SPEED
+200
+// 生产速度
+#define CONSUM_SPEED
+450
+// 消费速度
+#define INIT_NUM
+3
+// 仓库原有产品数
+#define
+TOTAL_NUM
+10
+// 仓库容量
+sem_t p_sem, c_sem, sh_sem;
+int num=INIT_NUM;
+// 仓库产品数量
+/* 生产延时 */
+void produce_delay(void)
+{
+msleep(PRODUCT_SPEED*10);
+}
+/* 消费延时 */
+void consume_delay(void)
+{
+msleep(CONSUM_SPEED*10);
+}
+/* 添加产品到仓库 */
+int add_to_lib(void)
+{
+sem_wait(&sh_sem);
+// 互斥
+num++;
+msleep(300);
+sem_post(&sh_sem);
+return num;
+}
+/* 从仓库中取出产品 */
+int sub_from_lib(void)
+{
+sem_wait(&sh_sem);
+// 互斥
+num--;
+msleep(300);
+sem_post(&sh_sem);
+return num;
+}
+/* 生产者线程 */
+void *producer(void *arg)
+{
+int num = 0;
+while(1)
+{
+produce_delay();
+// 生产延时
+sem_wait(&p_sem);
+// 生产信号量减一
+num = add_to_lib();
+printf("push into! total_num=%d\n", num);
+sem_post(&c_sem);
+// 消费信号量加一
+}
+}
+/* 消费者线程 */
+void *consumer(void *arg)
+{
+int num = 0;
+while(1)
+{
+sem_wait(&c_sem);
+// 消费者信号量减一
+num = sub_from_lib();
+printf("pop out! total_num=%d\n", num);
+sem_post(&p_sem);
+// 生产者信号量加一
+consume_delay();
+// 消费延时
+}
+}
+int main(int argc, char *argv[])
+{
+    pthread_t tid1,tid2;
+    sem_init(&p_sem,0,TOTAL_NUM-INIT_NUM);
+    sem_init(&c_sem,0,INIT_NUM);
+    sem_init(&sh_sem,0,1);
+    pthread_create(&tid1,NULL,producer,NULL);
+    pthread_create(&tid2,NULL,consumer,NULL);
+    pthread_join(tid1,NULL);
+    pthread_join(tid2,NULL);
+    return 0;
+}
+
+
+网络部分：路由器位于数据链路层
+主机设置默认网关是用来**【出局域网】访问外网的。这个默认网关其实是主机的一条默认路由。
+
+DNS协议运行在UDP协议之上，使用端口号53。
+
+DHCP是动态主机配置协议的简称， 其作用是可以使网络管理员通过一台服务
+器来管理一个网络系统，自动地为一个网络中的主机分配（ip）地址。
+
+tcp/ip
+模型中进程到进程之间通信属于（传输 ）层，主机到主机属
+于( 网络 ）层，设备到设备属于 （链路 ）层，程序到程序属于 （应用 ）层。
+
+/****************1_send_broad.c*****************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <string.h>
+#include <unistd.h>
+#include <strings.h>
+#include <arpa/inet.h>
+#define BROAD_IP "192.168.220.255"
+#define BROAD_PORT 2425
+#define BROAD_MSG "hello"
+int main(int argc, char **argv)
+{
+int fd_sock = 0;
+const int socket_opt_bc = 1;
+struct sockaddr_in broad_addr;
+bzero(&broad_addr, sizeof(broad_addr));
+broad_addr.sin_family = AF_INET;
+broad_addr.sin_port = htons(BROAD_PORT);
+inet_pton(AF_INET, BROAD_IP, &broad_addr.sin_addr);
+if((fd_sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0){
+perror("socket fd_sock error");
+exit(1);
+}
+if(setsockopt(fd_sock,
+SOL_SOCKET,
+SO_BROADCAST,
+&socket_opt_bc,
+(socklen_t)sizeof(socket_opt_bc)) != 0){
+perror("setsockopt fd_sock");
+return -1;
+}//
+设置广播选项
+while(1){
+sendto(fd_sock, BROAD_MSG, strlen(BROAD_MSG), 0,
+(struct sockaddr*)&broad_addr, sizeof(struct sockaddr));
+}
+close(fd_sock);
+}
+/*****************1_recv_broad.c*********************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <strings.h>
+#include <arpa/inet.h>
+#define SELF_PORT 2425
+int main(int argc, char **argv)
+{
+int fd_sock = 0;
+char msg_buf[512] = "";
+int ret = 1;
+struct sockaddr_in self_addr;
+bzero(&self_addr, sizeof(self_addr));
+self_addr.sin_family = AF_INET;
+self_addr.sin_port = htons(SELF_PORT);
+self_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+if((fd_sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0){
+perror("socket fd_sock error");
+exit(1);
+}
+if(bind(fd_sock,
+(struct
+sockaddr*)&self_addr,
+sizeof(struct
+sockaddr)) == -1){
+perror("bind fd_sock error");
+close(fd_sock);
+exit(2);
+}//
+绑定
+while(ret > 0){
+bzero(msg_buf, sizeof(msg_buf));
+ret = recvfrom(fd_sock,
+msg_buf, sizeof(msg_buf),
+0, NULL, NULL);
+printf("msg: %s\n", msg_buf);
+}
+close(fd_sock);
+exit(EXIT_SUCCESS);
+}
+
+
+6)
+编写一个 UDP类型的 client/server
+实例。
+/********************qq_thread.c**************************/
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/select.h>
+#include <sys/time.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <pthread.h>
+// 接收线程：负责接收消息并显示
+void *recv_thread(void* arg)
+{
+int udpfd = (int)arg;
+struct sockaddr_in addr;
+socklen_t addrlen = sizeof(addr);
+bzero(&addr,sizeof(addr));
+while(1)
+{
+char buf[200] = "";
+char ipbuf[16] = "";
+recvfrom(udpfd,
+buf, sizeof(buf),
+0, (struct
+sockaddr*)&addr,
+&addrlen);
+printf("\r\033[31m[%s]:\033[32m%s\n",inet_ntop(AF_INET,&addr.s
+in_addr,ipbuf,sizeof(ipbuf)),buf);
+write(1,"UdpQQ:",6);
+}
+return NULL;
+}
+int main(int argc,char *argv[])
+{
+char buf[100] = "";
+int udpfd = 0;
+pthread_t tid;
+struct sockaddr_in addr;
+struct sockaddr_in cliaddr;
+// 对套接字地址进行初始化
+bzero(&addr,sizeof(addr));
+addr.sin_family = AF_INET;
+addr.sin_port = htons(8001);
+addr.sin_addr.s_addr = htonl(INADDR_ANY);
+bzero(&cliaddr,sizeof(cliaddr));
+cliaddr.sin_family = AF_INET;
+cliaddr.sin_port = htons(8001);
+// 创建套接口
+if( (udpfd = socket(AF_INET,SOCK_DGRAM, 0)) < 0)
+{
+perror("socket error");
+exit(-1);
+}
+// 设置端口
+if(bind(udpfd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
+{
+perror("bind error");
+close(udpfd);
+exit(-1);
+}
+printf("input:
+\"sayto
+192.168.221.X\"
+to
+sendmsg
+to
+somebody\n");
+// 创建接收线程
+pthread_create(&tid, NULL, recv_thread, (void*)udpfd); //
+创建线
+程
+printf("\033[32m"); //
+设置字体颜色
+fflush(stdout);
+while(1)
+{
+// 主线程负责发送消息
+write(1,"UdpQQ:",6);//1
+表示标准输出
+fgets(buf, sizeof(buf), stdin); //
+等待输入
+buf[strlen(buf) - 1] = '\0'; //
+确保输入的最后一位是 '\0'
+if(strncmp(buf, "sayto", 5) == 0)
+{
+char ipbuf[INET_ADDRSTRLEN] = "";
+inet_pton(AF_INET, buf+6, &cliaddr.sin_addr);
+// 给 addr 套接字地址再赋值 .
+printf("\rconnect
+%s
+successful!\n",inet_ntop(AF_INET,&cliaddr.sin_addr,ipbuf,sizeof(i
+pbuf)));
+continue;
+}
+else if(strncmp(buf, "exit",4) == 0)
+{
+close(udpfd);
+exit(0);
+}
+sendto(udpfd,
+buf, strlen(buf),0,(struct
+sockaddr*)&cliaddr,
+sizeof(cliaddr));
+}
+return 0;
+}
+
+
+
+通常基于 linux
+系统的嵌入式开发步骤如下：
+1．开发目标硬件系统：如选择微处理器、 Flash 及其它外设等
+2．建立交叉开发环境：安装交叉编译工具链、配置串口通信工具、配置网络通信工具等
+3．开发 Bootloader ： 移植 Bootloader ，如 vivi、uboot
+4．移植 linux内核：如 linux2.4.18内核移植
+5．开发根文件系统：如 CRAMFS文件系统的制作
+6．开发相关硬件的驱动程序：如LCD、网卡、 GPIO等
+7．开发上层的应用程序：如网络、QT GUI开发
+
+
+什么 是Bootloader ，详细描述一下你对Bootloader的理解。常用的Bootloader有哪些？
+BootLoader：
+        boot阶段：初始化内存后，内存能用才能自搬移（文件系统与kernel）
+        关闭看门狗、中断。。。WTCON寄存器某位。。CPSR 的I/F位中断
+        初始化时钟---倍频到某一个主频，为外设分频
+        初始化串口，在时钟之后.cai kyi tiaoshi
+        初始化内存，主要指ddram
+        初始化硬盘nandflash
+        loader阶段：
+        从Emmc/Flash的kernel搬运到到指定内存中，（自搬移）跳转到kernel所在地址。
+
+无符号二进制11001000&&10001的结果是多少？
+解析：首先 && 是逻辑与 不是按位与，真&&真=真，所以得到的答案是真，结果是1
+
+全局变量存在于（静态区）中
+
+
+
+试编写函数判断计算机是大端存储还是小端存储（大端是低地址存高位，小端是低地址存地位）  
+bool IsBigendian()
+{
+    unsigned short usData = 0x1122;
+    unsigned char *pucData = (unsigned char*)&usData;
+    return (*pucData == 0x22);
+}
+
+1)static修饰变量分为两种情况，修饰全局变量表示限制该变量只能在本文件中使用，不能被其他文件外部调用；修饰局部变量，限制作用域在局部。无论是修饰局部变量还是全局变量，其生命周期都是从程序开始执行到结束
+2)修饰变量时，只能初始化一次，若使用该变量，则使用的是上一次运算后的结果
+3)修饰的变量保存在静态区
+4)可以修饰函数，防止其他文件调用
+5)可以修饰指针，在初始化时只能指向static修饰的变量，如果只是赋值，则可以指向任意类型变量的地址
+
+7、下面程序的输出是_____，为什么？
+char *ptr;
+if ((ptr = (char *)malloc(0)) == NULL)
+{
+puts("Got a null pointer");
+}
+else
+{
+puts("Got a valid pointer");
+}
+答：Got a valid pointer;申请空间大小为0，不代表申请失败
+
+
+
+4、设编号为1，2，… n的n个人围坐一圈，约定编号为k（1<=k<=n）的人从1开始报数，数到m 的那个人出列，它的下一位又从1开始报数，数到m的那个人又出列，依次类推，直到所有人出列为止，由此产生一个出队编号的序列。
+答案：
+     #include <stdio.h>
+     #include <stdlib.h>
+     int Josephu(int n, int m)
+     {
+            int flag, i, j = 0;
+            int *arr = (int *)malloc(n * sizeof(int));
+            for (i = 0; i < n; ++i)
+            arr[i] = 1;
+            for (i = 1; i < n; ++i)
+            {
+                flag = 0;
+             while (flag < m)
+             {
+                    if (j == n)
+                        j = 0;
+                    if (arr[j])
+                     ++flag;
+                 ++j;
+                 }
+            arr[j - 1] = 0;
+            printf("第%4d个出局的人是：%4d号\n", i, j);
+         }
+         free(arr);
+         return j;
+   }
+   int main()
+   {
+        int n, m;
+        scanf("%d%d", &n, &m);
+        printf("最后胜利的是%d号！\n", Josephu(n, m));
+        system("pause");
+        return 0;
+    }
+
+全局变量和局部变量在内存中是否有区别？如果有，是什么区别？
+答案：全局变量储存在静态数据库，局部变量在堆栈。
+
+sizeof(“123”), sizeof(“\\\0”),strlen(“\\\0”)结果4 3 1
+
+答案：静态库在程序编译时会被连接到目标代码中，程序运行时不需要该库，因此体积较大
+    动态库在程序编译时并不会被连接到目标代码中，运行时载入，因此在程序运行时还需要动态库存在，因此应用程序本身代码体积较小
+
+
+、多进程与多线程的对比
+答案：1)数据共享、同步：多进程数据共享复杂，需要用IPC；数据是分开的，同步简单；多线程因为共享进程数据，数据共享简单，但也是因为这个原因导致同步复杂
+2)内存、CPU：多进程占用内存多，CPU利用率低；多线程占用内存少，CPU利用率高
+3)创建销毁、切换：多进程创建销毁、切换复杂，速度慢；多线程创建销毁、切换简单，速度很快
+4)编程调试：多进程简单；多线程复杂
+5)可靠性：多进程间不会互相影响；多线程中一个线程挂掉将导致整个进程挂掉
+6)分布式：多进程可适应于多核、多机分布式，扩展到多台机器比较简单；多线程只适应于多核分布式
+选择原则：
+1>需要频繁创建销毁的优先用线程；
+2>需要进行大量计算的优先使用线程；
+3>强相关的处理用线程，弱相关的处理用进程；
+4>可能要扩展到多机分布的用进程，多核分布的用线程；
+5>都满足需求的情况下，用你最熟悉、最拿手的方式"
+
+SIGIO：有写操作，触发该信号
+
+8、IO多路复用原理
+答案：服务器使用单进程循环处理请求，只用一个进程，同时处理多个客户端请求。一般用在资源有限的情况下，可以解决资源限制的问题。它实际上是将UDP循环模型用在了TCP上面。存在问题：由于服务器是依次处理客户的请求，所以可能会导致有的客户等待时间过长
+
+9、TCP/UDP区别
+答案：1）TCP面向连接，多播和广播不能用于TCP；UDP是不可靠的传输，无须连接，可以应用多播和广播实现一对多的通信。
+2）可靠性：TCP提供端到端的流量控制，对收到的数据进行确认，采用超时重发，对失序的数据进行重新排序等机制保证数据通信的可靠性。而UDP是一种不可靠的服务，有可能会丢包。
+3）TCP是一种流模式的协议，UDP是一种数据报模式的协议。进程的每个输出操作都正好产生一个UDP数据报，并组装成一份待发送的IP数据报。TCP会有粘包和半包的现象。UDP要么收到，要么丢包。
+4）效率上：一般TCP速度慢，传输过程中需要对数据进行确认，超时重发，还要对数据进行排序。UDP没有这些机制所以速度快。数据比例，TCP头至少20个字节，UDP头8个字节，相对效率高。
+5）用途上：用于TCP可靠性，http，ftp使用。而由于UDP速度快，视频，在线游戏多用UDP，保证实时性
+
+10、简述OSI7层模型每层的作用
+答案：
+应用层（为操作系统或网络应用程序提供访问网络服务的接口）
+表示层（对上层数据或信息进行变换以保证一个主机应用层信息可以被另一个主机的应用程序理解）
+会话层（管理主机之间的会话进程，即负责建立、管理、终止进程之间的会话）
+传输层（负责将上层数据分段并提供端到端的、可靠的或不可靠的传输）
+网络层（负责对子网间的数据包进行路由选择，实现了拥塞控制、网际互连等功能）
+数据链路层（在不可靠的物理介质上提供可靠的传输）
+物理层（规定了激活、维持、关闭通信端点之间的机械特性、电气特性、功能特性以及过程特性）
+
+
+用递归算法判断数组a[N]是否为一个递增数组。
+答案：递归的方法，记录当前最大的，并且判断当前的是否比这个还大，大则继续，否则返回false结束：
+bool fun( int a[], int n )
+{
+if( n= =1 )
+return true;
+if( n= =2 )
+return a[n-1] >= a[n-2];
+return fun( a,n-1) && ( a[n-1] >= a[n-2] );
+}
+
+
+3、自己实现atoi，函数原型如下 int atoi(const char *str); 把字符串 str转换成 int类型。
+int atoi(const char * str)
+{
+    assert(str!=NULL);        
+    int result = 0;
+    int sign = 1;
+    if( ('0'<= str[0] && str[0] <= '9') ||(str[0]=='-') || str[0]=='+')
+    {
+        if(str[0] == '+' || str[0] == '-')
+        {
+            if(str[0]=='-')
+            {
+                sign = -1;
+            }
+            str++;
+        }
+    }
+    
+    while('0'<= *str && *str <= '9' ) 
+    {
+        result = result*10 + (*str++ - '0');  //'0'ASCII码48
+    }
+    return result * sign;
+}
+
+
+ARP(网络接口层)是根据IP地址获取物理地址的一个TCP/IP协议
+RARP(网络接口层与物理层)反向地址转换协议（RARP）允许局域网的物理机器从网关服务器的 ARP 表或者缓存上请求其 IP 地址
+ICMP(网络接口层与物理层)是Internet控制报文协议，用于在IP主机、路由器之间传递控制消息
+
+
+如下关于Linux系统说法错误的是（B）
+A、Linux是一个给予POSIX和UNIX的多用户、多任务、支持多线程和多CPU的操作系统
+B、Linux链接分为两种，一种被称为硬链接，另一种被称为符号链接。默认情况下，ln命令产生符号链接
+C、VI在命令模式输入a、i、o可直接进入编辑模式
+D、一般而言，kill用于杀死指定进程PID的进程，killall用于杀死指定名字的进程
+注：ln命令默认情况下创建的为硬链接，加-s才能创建软链接
+
+1、用宏定义写出swap（x，y）
+解析：#define swap(x, y) x = x + y; y = x - y; x = x - y
+
+下面的代码输出是什么，为什么？ 
+void foo(void)
+    {
+            unsigned int a = 6;
+         int b = -20;
+            (a+b > 6) ? puts("> 6") : puts("<= 6");
+    }
+解析：输出是 ">6"。原因是当表达式中存在有符号类型和无符号类型时所有的操作数都自动转换为无符号类型。因此-20变成了一个非常大的正整数，所以该表达式 计算出的结果大于6。
+
+
+以下代码中的两个
+sizeof 用法有问题吗？
+[C 易] void UpperCase( char str[] ) // 将 str 中的小写字母转换成大写字母
+{ for( size_t i=0; i<sizeof(str)/sizeof(str[0]); ++i )  sizeof有问题
+ if( 'a' <=str[i] && str[i] <='z' ) str[i] -= ('a'-'A' ); } 
+char str[] = "aBcDe"; cout < < "str
+字符长度为 : " < < sizeof(str)/sizeof(str[0]) < < endl; UpperCase( str
+); cout < < str < < endl; 答案：函数内的
+sizeof 有问题。根据语法， sizeof 如用于数组，只能测
+出静态数组的大小，无法检测动态分配的或外部数组大小。函数外的
+str 是一个静态定义的
+数组，因此其大小为
+6，因为还有 '\0'，函数内的
+str 实际只是一个指向字符串的指针，没有
+任何额外的与数组相关的信息，因此
+sizeof 作用于上只将其当指针看，一个指针为
+4 个字
+节，因此返回
+4。
+
+类的静态成员和非 静态成 员有何区别？
+答案：类的静态成员每个类只有一个，非静态成 员 每个对象一个
+
+那么要是想让 程序 跳转到 绝对地址是 0x100000 去执行， 应该怎么 做？
+答案：
+    #include <stdio.h>
+    typedef  void (*ABC)();   函数类型
+    void swap()
+    {
+        printf("asda\n");
+    }
+    int main()
+    {
+        printf("%p\n",swap);
+        ((ABC)0x40057d)();
+        return 0;
+    }
+
+    *((voidFuncPtr)0x100000)();
+    void (*pfun)(int data);定义函数指针
+    pfun = myfun；此时pfun获得了myfun的地址，pfun的地址等于myfun的地址，所以最终调用pfun();也就相当于调用了myfun();
+    (*pfun)(100);怎么调用
+
+
+typedef void (*pfun)(int data);定义了函数类型
+pfun p= myfun;      //函数指针指向执行函数的地址
+    p(100);调用跟myfun一模一样
+
+对于一个 频繁 使用的 短 小函数 ,在 C 语言中应用什么实 现,在 C++中应用什么实 现?
+答案： c 用宏定义， c++用 inline
+
+#define SQUARE(a) ((a)*(a))
+int a=5;
+int b;
+b=SQUARE(a++);
+答案：这个没有问题，
+s（a＋＋ ），就是（（ a＋＋ ）×（a＋＋ ）） 唯一要 注意的就是 计算后 a＝7 了
+
+有数组定义int a[2][2]={{1},{2,3}};则 a[0][1] 的值为 0。（正确 ）  其他默认初始化为0
+
+switch(c) 语句中 c 可以是 int ,long,char ,float ,unsigned int 类型。（错，不能用实 形 ）
+
+全局变量可不可以定义在可被多个.C 文件包含的头文件中？为什么？
+答：可以，在不同的C 文件中以 static 形式来声明同名全局变量。
+可以在不同的C 文件中声明同名的全局变量，前提是其中只能有一个C 文件中对此变量赋初值，此时连接不会出错
+
+
+一语句实现x 是否为 2 的若干次幂的判断---------就是1左移了几位，还是只有1位是1
+int i = 512;
+cout << boolalpha << ((i & (i - 1)) ? false : true) << endl;
+
+
+求函数返回值，输入
+x=9999;
+int func （ x ）
+{
+int countx = 0;
+while ( x )
+{
+countx ++;
+x = x&(x-1);
+}
+return countx;
+}
+结果呢？知道了这是统计9999 的二进制数值中有多少个1 的函数，且有
+9999＝9×1024＋512＋ 256＋15
+9×1024 中含有 1 的个数为 2；
+512 中含有 1 的个数为 1；
+256 中含有 1 的个数为 1；
+15 中含有 1 的个数为 4；
+故共有 1 的个数为 8，结果为 8。
+1000 - 1 = 0111，正好是原数取反。这就是原理。
+用这种方法来求1 的个数是很效率很高的。不必去一个一个地移位。循环次数最少。
+
+
+读文件 file1.txt 的内容（例如）：
+12
+34
+56
+输出到 file2.txt ：
+56
+34
+12
+（逆序）
+
+
+
+
+#include <stdio.h>
+#include <stdlib.h>
+int main(void)
+{
+int MAX = 10;
+int *a = (int *)malloc(MAX * sizeof(int));
+int *b;
+FILE *fp1;
+FILE *fp2;
+fp1 = fopen("a.txt","r");
+if(fp1 == NULL)
+{printf("error1");
+exit(-1);
+}
+fp2 = fopen("b.txt","w");
+if(fp2 == NULL)
+{printf("error2");
+exit(-1);
+}
+int i = 0;
+int j = 0;
+while(fscanf(fp1,"%d",&a[i]) != EOF)
+{
+i++;
+j++;
+if(i >= MAX)
+{
+MAX = 2 * MAX;
+b = (int*)realloc(a,MAX * sizeof(int));
+if(b == NULL)
+{
+printf("error3");
+exit(-1);
+}
+a = b;
+}
+}
+for(;--j >= 0;)
+fprintf(fp2,"%d\n",a[j]);
+fclose(fp1);
+fclose(fp2);
+return 0;
+
+
+
+
+void inverse(char *p)
+{
+if( *p = = '\0' )
+return;
+inverse( p+1 );
+printf( "%c", *p );
+}
+int main(int argc, char *argv[])
+{
+inverse("abc\0");
+return 0;
+}
+借签了楼上的 “递规反向输出 ”
+#include <stdio.h>
+void test(FILE *fread, FILE *fwrite)
+{
+char buf[1024] = {0};
+if (!fgets(buf, sizeof(buf), fread))
+return;
+test( fread, fwrite );
+fputs(buf, fwrite);
+}
+int main(int argc, char *argv[])
+{
+FILE *fr = NULL;
+FILE *fw = NULL;
+fr = fopen("data", "rb");
+fw = fopen("dataout", "wb");
+test(fr, fw);
+fclose(fr);
+fclose(fw);
+return 0;
+
+
+线形表 a、b 为两个有序升序的线形表，编写一程序，使两个有序线形表合并成一个有序升序线形表
+h；
+答案在
+请化大学
+严锐敏《数据结构第二版》第二章例题，数据结构当中，这个叫做：两路归并排序
+Linklist *unio(Linklist *p,Linklist *q){
+linklist *R,*pa,*qa,*ra;
+pa=p;
+qa=q;
+R=ra=p;
+while(pa->next!=NULL&&qa->next!=NULL){
+if(pa->data>qa->data){
+ra->next=qa;
+qa=qa->next;
+}
+else{
+ra->next=pa;
+pa=pa->next;
+}
+}
+if(pa->next!=NULL)
+ra->next=pa;
+if(qa->next!=NULL)
+ra->next==qa;
+return R;
+}
+2、运用四色定理，为
+N 个局域举行配色，颜色为
+1、2、3、4 四种，另有数组
+adj[][N] ，如 adj[i][j]=1
+则表
+示 i 区域与 j 区域相邻，数组
+color[N] ，如 color[i]=1, 表示 i 区域的颜色为
+1 号颜色。
+四色填充
+3、用递归算法判断数组
+a[N] 是否为一个递增数组。
+递归的方法，记录当前最大的，并且判断当前的是否比这个还大，大则继续，否则返回
+false 结束：
+bool fun( int a[], int n )
+{
+if( n= =1 )
+return true;
+if( n= =2 )
+return a[n-1] >= a[n-2];
+return fun( a,n-1) && ( a[n-1] >= a[n-2] );
+}
+4、编写算法，从
+10 亿个浮点数当中，选出其中最大的
+10000 个。
+用外部排序，在《数据结构》书上有
+《计算方法导论》在找到第
+n 大的数的算法上加工
+5、编写一 unix 程序，防止僵尸进程的出现
+.
+*********************************************************************
+同学的 4 道面试题，应聘的职位是搜索引擎工程师，后两道超级难，（希望大家多给一些算发）
+1.给两个数组和他们的大小，还有一动态开辟的内存，求交集，把交集放到动态内存
+dongtai，并且返回交
+集个数
+long jiaoji(long* a[],long b[],long* alength,long blength,long* dongtai[])
+2.单连表的建立，把
+'a'--'z'26 个字母插入到连表中，并且倒叙，还要打印！
+方法 1：
+typedef struct val
+{ int date_1;
+struct val *next;
+}*p;
+void main(void)
+{ char c;
+for(c=122;c>=97;c--)
+{ p.date=c;
+p="p-">next;
+}
+p.next=NULL;
+}
+}
+方法 2：
+node *p = NULL;
+node *q = NULL;
+node *head = (node*)malloc(sizeof(node));
+head->data = ' ';head->next=NULL;
+node *first = (node*)malloc(sizeof(node));
+first->data = 'a';first->next=NULL;head->next = first;
+p = first;
+int longth = 'z' - 'b';
+int i="0";
+while ( i<=longth )
+{
+node *temp = (node*)malloc(sizeof(node));
+temp->data = 'b'+i;temp->next=NULL;q=temp;
+head->next = temp; temp->next=p;p=q;
+i++;
+}
+print(head);
+1.这样的初始化有什么问题？
+char *p = malloc(10); 编译器提示 “非法初始式 ” 云云。
+答:这个声明是静态或非局部变量吗？函数调用只能出现在自动变量
+(即局部非静态变量
+) 的初始式中。
+因为静态变量的地址必须在编译的过程中就确定下来而
+malloc() 申请的内存地址是在运行时确定的。
+2. *p++ 自增 p 还是 p 所指向的变量 ?
+答:后缀 ++ 和-- 操作符本质上比前缀一目操作的优先级高
+, 因此 *p++ 和*(p++) 等价 , 它自增 p 并返回 p
+自增之前所指向的值。
+要自增 p 指向的值 , 使用 (*p)++, 如果副作用的顺序无关紧要也可以使用
+++*p 。
+3 我有一个 char * 型指针正巧指向一些
+int 型变量 , 我想跳过它们。为什么如下的代码
+((int *)p)++;
+不行 ?
+答:在 C 语言中 , 类型转换意味着
+“把这些二进制位看作另一种类型
+, 并作相应的对待 ”; 这是一个转换操作
+符,
+根据定义它只能生成一个右值
+(rvalue)。而右值既不能赋值
+, 也不能用 ++ 自增。 (如果编译器支持这样的扩
+展,
+那要么是一个错误
+, 要么是有意作出的非标准扩展。
+) 要达到你的目的可以用
+:p = (char *)((int *)p + 1);
+或者 ,因为 p 是 char * 型, 直接用 p += sizeof(int);
+4.空指针和未初始化的指针是一回事吗
+?
+答:空指针在概念上不同于未初始化的指针
+:空指针可以确保不指向任何对象或函数
+;
+而未初始化指针则可能指向任何地方。
+5.我可以用 0 来表示空指针吗
+?
+答:根据语言定义 , 在指针上下文中的常数
+0 会在编译时转换为空指针。也就是说
+, 在初始化、赋值或比较
+的时候 ,
+如果一边是指针类型的值或表达式
+, 编译器可以确定另一边的常数
+0 为空指针并生成正确的空指针值。因
+此下边的代码段完全合法：
+char *p = 0;
+if(p != 0)
+然而 , 传入函数的参数不一定被当作指针环境
+, 因而编译器可能不能识别未加修饰的
+0 “表示 ” 指针。
+在函数调用的上下文中生成空指针需要明确的类型转换
+,强制把 0 看作指针。
+例如 , Unix 系统调用 execl 接受变长的以空指针结束的字符指针参数。它应该如下正确调用：
+execl("/bin/sh", "sh", "-c", "date", (char *)0);
+如果省略最后一个参数的
+(char *) 转换 , 则编译器无从知道这是一个空指针
+,从而当作一个
+0 传入。 (注意很
+多 Unix 手册在这个例子上都弄错了。
+)
+摘要 :
+==========================|=============================
+|| 可以使用未加修饰的
+0 | 需要显示的类型转换
+||
+||------------------------|---------------------------||
+|| *初始化
+| *函数调用 , 作用域内无原型
+||
+|| *赋值
+| *变参函数调用中的可变参数
+||
+|| *比较
+| ||
+|| *固定参数的函数调用
+| ||
+|| 且在作用域内有原型
+| ||
+==========================|=============================
+有两条简单规则你必须遵循
+:
+1) 当你在源码中需要空指针常数时
+, 用“ 0”
+或“ NULL”。
+2) 如果在函数调用中
+“ 0”
+或 “ NULL” 用作参数 , 把它转换成被调函数需要的指针类型
+
+
+
+磁珠、 0 欧电阻的隔离
+磁珠通常只适用于高频电路，
+因为在低频时， 它们基本上是保有电感的完整特性
+（包含有电
+阻性和电抗性分量） ，因此会造成线路上的些微损失。可以将磁珠视为一个电阻并联一个电
+感。在低频时，电阻被电感“短路”
+,电流流往电感；在高频时，电感的高感抗迫使电流流
+向电阻。
+数字地和模拟地的隔离：
+1）用磁珠连接：
+磁珠的等效电路相当于带阻限波器，
+只对某个
+频点的噪声有显着抑制作用，
+使用时需要预先估计噪点频率，
+以便选用适当型号。
+对于频率
+不确定或无法预知的情况，磁珠不合。
+2）用零欧姆电阻连接：零欧电阻相当于很窄的电流通路，能够有效地限制环路电流，使噪
+声得到抑制。电阻在所有频带上都有衰减作用（零欧电阻也有阻抗）
+，这点比磁珠强。
+
+
+查找子字符串个数
+#include<stdio.h>
+#include<string.h>
+int fun(char *str1,char *str2);
+int main()
+{
+char s1[100] = "aabbssffbbcccceesbb";
+char s2[100] = "bb";
+printf(" 子字符串个数是
+:%d\n",fun(s1,s2));
+return 0;
+}
+int fun(char *str1,char *str2)
+{
+int len1 = strlen(str1);
+int len2 = strlen(str2);
+int i,count=0;
+for(i=0;i<len1-len2+1;i++)
+{
+if(strncmp(str1+i,str2,len2)==0)
+count++;
+}
+return count;
+}
+输出的结果是
+：子字符串个数是：
+3
+
+
+
+简单的字符统计
+2次循环，第一次循环遍历char数组，将‘a’对应的存它次数的int brr【97】++；
+第二次遍历brr数组，如果不是0，就打印
+
+
+删除字符串中字符数最少的字符
+#include<stdio.h>
+#include<string.h>
+int main()
+{
+char *str="affddsass";
+int len=strlen(str);
+int a[128]={0};
+int p,min,i,k=0;
+char b[128];
+for(i=0;i<len;i++)
+{
+p=str[i];
+a[p]++;
+}
+i=0;
+while(a[i]==0)
+i++;
+min=a[i];
+for(i=0;i<128;i++)
+{
+if(a[i]!=0
+&& a[i]<min)
+{
+min=a[i];
+}
+}
+for(i=0;str[i]!='\0';i++)
+{
+if(a[str[i]]!=min)
+{
+b[k++]=str[i];
+}
+}
+b[k]='\0';
+for(i=0;b[i]!='\0';i++)
+{
+putchar(b[i]);
+}
+putchar('\n');
+return 0;
+}
+输出结果： sss
+
+
+要给一个char * str;
+不能直接gets（）str
+因为str指向的地方是空的，必须要先分配内存，不然相当于操作空指针
+可以直接char * str = “saasfsa”；
+char str[] = "asfasf"
+
+
+例 6 字符串中子字符串的替换
+#include<stdio.h>
+#include<string.h>
+char* strReplace(char s1[],char s2[],char s3[]);
+int main()
+{
+char s1[]="abcdefbbbsddsbbb";
+char s2[]="bbb";
+char s3[]="ggg";
+char *ps=strReplace(s1,s2,s3);
+puts(ps);
+return 0;
+}
+char* strReplace(char s1[],char s2[],char s3[])
+{
+int i;
+int len1=strlen(s1);
+int len2=strlen(s2);
+int len3=strlen(s3);
+for(i=0;i<=len1-len2;i++)
+{
+if(strncmp(s1+i,s2,len2)==0)
+{
+strncpy(s1+i,s3,len3);
+}
+}
+return s1;
+}
+输出结果： abcdefgggsddsggg
+
+
+算分数问题，去掉一个最高分一个最低分，求平均分
+#include<stdio.h>
+#include<string.h>
+#include<malloc.h>
+int main()
+{
+    int arr[7] = {1,2,3,4,5,6,7};
+    int i = 0;
+    int min = arr[0],max = arr[0];这里一定要注意，选取arr【0】
+    for(i = 0;i < 7;i++)            因为你初始化为0,0是最小值，数组里面的1并不会被剪掉
+    {
+        if(min > arr[i])
+        {
+            min = arr[i];
+        }else if(max < arr[i])
+        {
+            max = arr[i];
+        }
+    }
+    int sum = 0;
+    for(i = 0;i < 7;i++)
+    {
+        sum = sum+arr[i];
+    }
+    sum  = sum-min-max;
+    printf("%f",1.0 * sum/5);
+    return 0;
+}
+
+
+
+统计一个数二进制表达式中
+0 的个数
+#include<stdio.h>
+int fun(int a);
+int main()
+{
+int count;
+int a=10;
+count=fun(a);
+printf("%d 中二进制表达式中
+0 的个数是 :%d\n",a,count);
+return 0;
+}
+int fun(int a)
+{
+int count=0;
+while(a)            右移的是需要检查的数，值传递，并不会改变原有的数字
+{
+if((a&1)==0)  这里a&1要括起来，有优先级的  a&1==0 优先级不对
+count++;
+a=(a>>1);
+}
+return count;
+}
+
+
+
+例
+镜像翻转二进制表达式，并输出十进制值
+#include<stdio.h>
+void fun(int a);
+int main()
+{
+int a=10;
+fun(a);
+return 0;
+}
+void fun(int a)
+{
+int b[30];
+int i=0,j;
+int sum=0;
+while(a)
+{
+b[i++]=(a&1);
+a=(a>>1);
+}
+for(j=0;j<i;j++)
+{
+sum=sum*2+b[j];
+}
+printf(" 翻转后的二进制是: ");
+for(j=0;j<i;j++)
+{
+printf("%d ",b[j]);
+}
+printf("\n");
+printf(" 对应的十进制值是:%d\n",sum);
+}
+输出结果：翻转后的二进制是：0101
+对应的十进制值是：5
+
+
+例
+对数组从新一左一右排序
+#include<stdio.h>
+#include<string.h>
+void sort(int input_num[],int
+len,int output_num[]);
+int main()
+{
+int i;
+const len = 7;
+int input_num[len]={3,6,1,9,7,8,5};
+int output_num[len]={0};
+sort(input_num,len,output_num);
+for(i=0;i<len;i++)
+{
+printf("%d ",output_num[i]);
+}
+printf("\n");
+return 0;
+}
+void sort(int input_num[],int
+len,int output_num[])
+{
+int i,j,k,temp,max;
+for(i=0;i<len-1;i++)
+{
+max=i;
+for(j=i+1;j<len;j++)
+{
+if(input_num[j]>input_num[max])
+max=j;
+}
+if(max!=i)
+{
+temp=input_num[i];
+input_num[i]=input_num[max];
+input_num[max]=temp;
+}
+}
+if(len%2==0)
+{
+i=(len-1)/2+1;
+j=i-1;
+for(k=0;k<len;k++,k++)
+{
+output_num[i]=input_num[k];
+output_num[j]=input_num[k+1];
+i++;
+j--;
+}
+}
+if(len%2==1)
+{
+i=len/2;
+j=i-1;
+for(k=0;k<len-1;k++,k++)
+{
+output_num[i]=input_num[k];
+output_num[j]=input_num[k+1];
+i++;
+j--;
+}
+output_num[i]=input_num[k];
+}
+}
+输出结果：如果是偶数
+input_num[]={3,6,1,9,7,8}
+output_num[]={1,6,8,9,7,3}
+如果是奇数
+input_num[]={3,6,1,9,7,8,5}
+output_num[]={3,6,8,9,7,5,1}
+例
+对于一个数组，将数组中偶数从大到小排序，奇数从小到大排序
+奇数和偶数较叉着放且输出数组第一位放奇数
+若奇数与偶数不等长，则把剩下的
+直接放到数组中
+程序：
+//对一个数组，将数组中偶数从大到小排序，奇数从大到小排序
+#include<stdio.h>
+#include<string.h>
+void jiou(int a[],int len,int data1[],int data2[]);
+int main()
+{
+int i;
+const len=10;
+int a[len]={2,3,14,6,2,15,12,14,4,11};
+int data1[len],data2[len];
+jiou(a,len,data1,data2);
+for(i=0;i<len;i++)
+printf("%d ",a[i]);
+printf("\n");
+return 0;
+}
+void jiou(int a[],int len,int data1[],int data2[])
+{
+int i,j,temp,k=0,kk=0;
+for(i=0;i<len;i++)
+{
+if(a[i]%2==1)
+{
+data1[k++]=a[i];
+//printf("%d
+",a[i]);
+}
+else
+{
+data2[kk++]=a[i];
+//printf("%d
+",a[i]);
+}
+}
+for(i=0;i<k-1;i++)
+for(j=0;j<k-i-1;j++)
+{
+if(data1[j]>data1[j+1])
+{
+temp=data1[j];
+data1[j]=data1[j+1];
+data1[j+1]=temp;
+}
+}
+for(i=0;i<kk-1;i++)
+{
+for(j=0;j<kk-i-1;j++)
+{
+if(data2[j]<data2[j+1])
+{
+temp=data2[j];
+data2[j]=data2[j+1];
+data2[j+1]=temp;
+}
+}
+}
+for(i=0;i<k;i++)
+printf("%d ",data1[i]);
+printf("\n");
+for(i=0;i<kk;i++)
+printf("%d ",data2[i]);
+printf("\n");
+j=0;
+if(k<kk)
+{
+for(i=0;i<k;i++)
+{
+a[j++]=data1[i];
+a[j++]=data2[i];
+}
+for(;i<kk;i++)
+a[j++]=data2[i];
+}
+else
+{
+for(i=0;i<kk;i++)
+{
+a[j++]=data1[i];
+a[j++]=data2[i];
+}
+for(;i<k;i++)
+a[j++]=data1[i];
+}
+}
+输出结果： 3 6 11
+15 14 14 12 4 2 2
+3 15 6 14 11 14 12 4 2 2
+
+
+
+例
+手机号合法性判断
+问题描述：我国大陆运营商的手机号码标准格式为：国家号 + 手机号码，例如 8613912345678.特点如下：
+1.长度 13 位；
+2.以 86 的国家码打头
+3.手机号码的每一位都是数字
+1>如果手机号合法，返回
+0
+2>如果手机号码长度不合法，返回
+1
+3>如果手机号码中包含非数字的字符，返回
+2
+4>如果手机号码不是以
+86 开头的字符，返回
+3
+程序：
+#include<stdio.h>
+#include<string.h>
+int verify(char a[]);
+int main()
+{
+char a[]="8613923456789";
+int re=verify(a);
+switch(re)
+{
+    case0:
+    printf(" 手机号码合法 !\n");
+    break;
+    case1:
+    printf(" 手机号码长度不合法!\n");
+    break;
+    case2:
+    printf(" 手机号码中包含非数字的字符!\n");
+    break;
+    case3:
+    printf(" 手机号码不是以86 开头的 !\n");
+    break;
+}
+return 0;
+}
+int verify(char a[])
+{
+    int i;
+    int len=strlen(a);
+    if(len!=13)
+    return 1;
+    else
+    for(i=0;i<len;i++)
+    {
+    if(a[i]>'9'
+    ||a[i]<'1')
+    return 2;
+    }
+    if(strncmp(a,"86",2)!=0)
+    return 3;
+    else
+    return 0;
+}
+输出结果：手机号码合法！
+例
+身份证合法性判定
+身份证号特点如下：
+1. 长度为 18 位
+
+
+*****char * arr[2] = {"niaho ","aini"};  这种表示字符串数组，有2个字符串
+        指针数组，是个数组，每个元素是char*数据类型
+char arr[][10];这种数组要指定每个串长，前者可以没有，后者必须有。表示字长
+
+对(-1.2345)取整是多少？   （int）i；类型转换一下
+
+暴力破解
+int bf(char *str1,int lenstr1,char * str2,int lenstr2)
+{
+    int i = 0,j = 0;
+
+    while(i < lenstr1 && j<lenstr2)
+    {
+        if(str1[i] == str2[j])
+        {
+            i++;j++;
+        }else{
+            i = i-j+1;
+            j = 0;
+        }
+    }
+    if(j == lenstr2)
+    return i-j;
+    else
+        return 0;
+}
+
+表达式3*2^(4+2*2-6*3)-5求值过程中当扫描到6时,对象栈和运算符栈为(  D  ),其中^为乘幂。
+A.3,2,4,1,1;(*^(+*-
+B.3,2,8;(*^-
+C.3,2,4,2,2;(*^(-
+D.3,2,8;*^(-
+
+解析：对象栈：3,2,8；算符栈：*，^，（，- 。
+具体过程：
+第一次：对象栈：3；算符栈：*；
+第二次：对象栈：3,2；算符栈：*，^，（；
+第三次：对象栈：3,2,4；算符栈：*，^，（，+；
+第四次：对象栈：3,2,4,2；算符栈：*，^，（，+，*；
+第五次：对象栈：3,2,4，4；算符栈：*，^，（，+；
+第六次（扫描到6）：对象栈：3,2,8；算符栈：*，^，（，- 。 
+
+
+
+
+
+参考答案：在一般情况下，由于数据量比较小，中断会比轮询更有效率。但是如果数据量比较大的时候，如果采用中断，由于CPU花在进程切换和保存现场上的时间开销变得比较大，所以这个时候通常采用轮询更有效率。
+
+
+
+static :限制变量作用域，设置变量存储域（静态区）
+
+引用于指针：能不能赋值null  初始化后能不能改变
+
+实时操作系统：特定时间内完成特定任务，实时可靠
+
+6. 堆栈溢出一般是由什么原因导致的？
+没有回收垃圾资源
+
+
+
+  12.  IP地址的编码分为哪俩部分？
+IP地址由两部分组成，网络号和主机号。不过是要和“子网掩码”按位与上之后才能区分哪些是网络位哪些是主机位。
+
+
+15、如何引用一个已经定义过的全局变量？
+答：extern关键字
+可以用引用头文件的方式，也可以用extern关键字，如果用引用头文件方式来引用某个在头文件中声明的全局变理，假定你将那个变写错了，那么在编译期间会报错，如果你用extern方式引用时，假定你犯了同样的错误，那么在编译期间不会报错，而在连接期间报错
+
+
+17、static全局变量与普通的全局变量有什么区别？static局部变量和普通局部变量有什么区别？static函数与普通函数有什么区别？
+全局变量(外部变量)的说明之前再冠以static 就构成了静态的全局变量。全局变量本身就是静态存储方式， 静态全局变量当然也是静态存储方式。这两者在存储方式上并无不同。这两者的区别虽在于非静态全局变量的作用域是整个源程序，当一个源程序由多个源文件组成时，非静态的全局变量在各个源文件中都是有效的。 而静态全局变量则限制了其作用域， 即只在定义该变量的源文件内有效，在同一源程序的其它源文件中不能使用它。由于静态全局变量的作用域局限于一个源文件内，只能为该源文件内的函数公用，因此可以避免在其它源文件中引起错误。
+从以上分析可以看出， 把局部变量改变为静态变量后是改变了它的存储方式即改变了它的生存期。把全局变量改变为静态变量后是改变了它的作用域， 限制了它的使用范围。
+static函数与普通函数作用域不同。仅在本文件。只在当前源文件中使用的函数应该说明为内部函数(static)，内部函数应该在当前源文件中说明和定义。对于可在当前源文件以外使用的函数，应该在一个头文件中说明，要使用这些函数的源文件要包含这个头文件
+
+static全局变量与普通的全局变量有什么区别：static全局变量只初使化一次，防止在其他文件单元中被引用;
+static局部变量和普通局部变量有什么区别：static局部变量只被初始化一次，下一次依据上一次结果值；
+static函数与普通函数有什么区别：static函数在内存中只有一份，普通函数在每个被调用中维持一份拷贝
+
+
+磁盘排序：
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int StrToInt(string str)
+{
+    if (str[str.size() - 1] == 'M') {
+        return stoi(str.substr(0, str.size() - 1));  //例如1000M，size是5，要取1000得0-4 0,1,2,3左闭右开
+    } else if (str[str.size() - 1] == 'G') {
+        return stoi(str.substr(0, str.size() - 1)) * 1000;
+    } else if (str[str.size() - 1] == 'T') {
+        return stoi(str.substr(0, str.size() - 1)) * 1000000;
+    }
+
+    return 0;
+}
+
+bool Compare(const string &strA, const string &strB)
+{
+    int a = StrToInt(strA);
+    int b = StrToInt(strB);
+    // 升序排序          将str转换成数字进行 仿函数比较
+    return a < b;
+}
+void print(string arg)
+{cout<<arg<<" ";}
+int  main(void)
+{
+    int n;
+    cin>>n;  //要给几个str排序
+    string str;
+    vector<string> vec;
+
+    while (n--) {   //输入几次str
+        cin >> str;
+        vec.push_back(str);     //放到vector
+    }
+    sort(vec.begin(), vec.end(), Compare);   //排序
+    for_each(vec.begin(), vec.end(), print);
+
+    return 0;
+}
+
+
+
+*****************************用0对arr[n]里头存放的0-n-1排序*************************
+#include <stdio.h>
+void swap(int *a,int *b)
+{
+    int temp;
+    temp = *a;*a = *b;*b = temp;
+}
+void swapwith0(int *arr,int len)
+{
+    int flag = len-1;int i = 0;int j = 0;
+    for(flag = len-1; arr[flag]!=flag || flag > 0;flag--)
+    {
+        for(j = 0;j<len;j++)
+        {
+            if(arr[j] == 0)
+                break;
+        }
+        swap(&arr[flag],&arr[j]);
+        for(i = 0;i < len;i++)
+        {
+            if(arr[i] == flag)
+                break;
+        }
+        swap(&arr[flag],&arr[i]);
+    }
+}
+int main ()
+{
+    int arr[6] = {3,4,2,5,0,1};
+    int i = 0;
+    for(i = 0;i < 6;i++)
+    {
+        printf("%d-",arr[i]);
+    }printf("\n");
+    swapwith0(arr,6);
+    for(i = 0;i < 6;i++)
+    {
+        printf("%d-",arr[i]);
+    }printf("\n");
+}
+
+
+
+随时回收子线程的资源：
+void *handlefunc(void *arg)
+{
+    int i=0;
+    while(i<4)
+    {
+        printf("aaaaaa child\n");
+        sleep(1);
+        i++;
+    }
+}
+
+int main()
+{
+    int ret;pthread_t pthid;
+    ret =  pthread_create(&pthid, NULL,handlefunc, NULL);
+    pthread_detach(pthid);   设为游离态，会被OS回收它释放的资源
+    while(1)
+    {
+        printf("bbbbbbb father\n");
+        sleep(1);
+    }
+    
+    return 0;
+}
+
+
+
+
+
+
+
+test代码：  求1个数
+int numSub(string s) {
+        int sum = 0;
+        int mod = (int)1e9+7;
+        int count = 0;
+        int i = 0;
+        for(i = 0;i < s.size();i++)
+        {
+            if(s[i] == '1')
+            {count++;}
+            else
+            {
+                sum+=(count+1)*count /2;
+                count = 0;
+            }
+            
+        }
+        return sum%mod;
+    }
+
+若返回值是vector<int> ,如果题里面入参出错。 你也得返回个空的vector<int>  
+
+
+
+
+
+
+
+
+

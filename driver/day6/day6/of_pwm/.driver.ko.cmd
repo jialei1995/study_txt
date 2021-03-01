@@ -1,0 +1,1 @@
+cmd_/mnt/hgfs/arm-test/driver/20011-driver/day6/of_pwm/driver.ko := arm-none-linux-gnueabi-ld -EL -r  -T /home/farsight/linux-add-usb/linux-3.14/scripts/module-common.lds --build-id  -o /mnt/hgfs/arm-test/driver/20011-driver/day6/of_pwm/driver.ko /mnt/hgfs/arm-test/driver/20011-driver/day6/of_pwm/driver.o /mnt/hgfs/arm-test/driver/20011-driver/day6/of_pwm/driver.mod.o

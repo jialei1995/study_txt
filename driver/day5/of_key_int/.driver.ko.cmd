@@ -1,0 +1,1 @@
+cmd_/mnt/hgfs/inclass/drive/day5/of_key_int/driver.ko := arm-none-linux-gnueabi-ld -EL -r  -T /home/linux/Downloads/linux-3.14/scripts/module-common.lds --build-id  -o /mnt/hgfs/inclass/drive/day5/of_key_int/driver.ko /mnt/hgfs/inclass/drive/day5/of_key_int/driver.o /mnt/hgfs/inclass/drive/day5/of_key_int/driver.mod.o

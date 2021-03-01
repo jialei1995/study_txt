@@ -1,0 +1,1 @@
+cmd_/mnt/hgfs/inclass/drive/day3/ioctl/hello.ko := arm-none-linux-gnueabi-ld -EL -r  -T /home/linux/Downloads/linux-3.14/scripts/module-common.lds --build-id  -o /mnt/hgfs/inclass/drive/day3/ioctl/hello.ko /mnt/hgfs/inclass/drive/day3/ioctl/hello.o /mnt/hgfs/inclass/drive/day3/ioctl/hello.mod.o

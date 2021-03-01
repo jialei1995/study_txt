@@ -1,0 +1,1 @@
+cmd_/mnt/hgfs/inclass/drive/day1/test/dest/hehe2.ko := ld -r -m elf_i386 -T /usr/src/linux-headers-3.2.0-29-generic-pae/scripts/module-common.lds --build-id  -o /mnt/hgfs/inclass/drive/day1/test/dest/hehe2.ko /mnt/hgfs/inclass/drive/day1/test/dest/hehe2.o /mnt/hgfs/inclass/drive/day1/test/dest/hehe2.mod.o

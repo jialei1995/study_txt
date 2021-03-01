@@ -1,0 +1,1 @@
+-T E:/学习资料/arm模拟环境/arm模拟环境/map.lds -mcpu=arm920t -mthumb-interwork -Wl -o huibian.elf "start.o" -nostartfiles -lm

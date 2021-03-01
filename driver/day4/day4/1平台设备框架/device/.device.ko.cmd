@@ -1,0 +1,1 @@
+cmd_/mnt/hgfs/inclass/drive/day4/day4/1平台设备框架/device/device.ko := ld -r -m elf_i386 -T /usr/src/linux-headers-3.2.0-29-generic-pae/scripts/module-common.lds --build-id  -o /mnt/hgfs/inclass/drive/day4/day4/1平台设备框架/device/device.ko /mnt/hgfs/inclass/drive/day4/day4/1平台设备框架/device/device.o /mnt/hgfs/inclass/drive/day4/day4/1平台设备框架/device/device.mod.o

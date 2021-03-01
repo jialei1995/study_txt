@@ -1,0 +1,3 @@
+Dependencies for Project 'led', Target 'Target 1': (DO NOT MODIFY !)
+F (.\start.s)(0x5ECB9F38)(-mcpu=arm920t --gdwarf-2 -mthumb-interwork --MD start.d -IE:/software/Keil4/ARM/CMSIS/Include -IE:/software/Keil4/ARM/Inc/Samsung -o start.o)
+F (.\main.c)(0x5ECBA693)(-c -mcpu=arm920t -gdwarf-2 -MD -Wall -O0 -mapcs-frame -mthumb-interwork -IE:/software/Keil4/ARM/CMSIS/Include -IE:/software/Keil4/ARM/Inc/Samsung -o main.o)

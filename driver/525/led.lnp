@@ -1,0 +1,1 @@
+-T ./led2/map.lds -mcpu=arm920t -mthumb-interwork -Wl -o led.elf "start.o" "main.o" -nostartfiles -lm

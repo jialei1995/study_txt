@@ -1,0 +1,151 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Project:</h2>
+F:\inclass\arm\525\led.uvproj
+Project File Date:  05/25/2020
+
+<h2>Output:</h2>
+Build target 'Target 1'
+assembling start.s...
+start.s: Assembler messages:
+Warning: start.s: Warning: end of file not at end of a line; newline inserted
+start.s(30): error: bad instruction `bloop'
+Target not created
+Build target 'Target 1'
+assembling start.s...
+start.s: Assembler messages:
+Warning: start.s: Warning: end of file not at end of a line; newline inserted
+linking...
+"led.elf" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+assembling start.s...
+linking...
+"led.elf" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+compiling main.c...
+main.c: In function 'led2_init':
+main.c(6): error: expected ')' before 'unsigned'
+main.c(6): error: expected ')' before numeric constant
+main.c(7): error: expected ')' before 'unsigned'
+main.c(7): error: expected ')' before numeric constant
+main.c: In function 'led2_on':
+main.c(12): error: expected ')' before 'unsigned'
+main.c(12): error: expected ')' before numeric constant
+main.c: In function 'led2_off':
+main.c(16): error: expected ')' before 'unsigned'
+main.c(16): error: expected ')' before numeric constant
+Target not created
+Build target 'Target 1'
+compiling main.c...
+main.c: In function 'led2_init':
+main.c(6): error: expected expression before 'volatile'
+main.c(7): error: expected expression before 'volatile'
+main.c: In function 'led2_on':
+main.c(12): error: expected expression before 'volatile'
+main.c: In function 'led2_off':
+main.c(16): error: expected expression before 'volatile'
+Target not created
+Rebuild target 'Target 1'
+assembling start.s...
+compiling main.c...
+main.c: In function 'led2_init':
+main.c(6): error: expected ')' before 'unsigned'
+main.c(6): error: expected ')' before numeric constant
+main.c(7): error: expected ')' before 'unsigned'
+main.c(7): error: expected ')' before numeric constant
+main.c: In function 'led2_on':
+main.c(12): error: expected ')' before 'unsigned'
+main.c(12): error: expected ')' before numeric constant
+main.c: In function 'led2_off':
+main.c(16): error: expected ')' before 'unsigned'
+main.c(16): error: expected ')' before numeric constant
+Target not created
+Build target 'Target 1'
+compiling main.c...
+main.c: In function 'led2_init':
+main.c(6): error: expected ')' before 'unsigned'
+main.c(6): error: expected ')' before numeric constant
+main.c(7): error: expected ')' before 'unsigned'
+main.c(7): error: expected ')' before numeric constant
+main.c: In function 'led2_on':
+main.c(12): error: expected ')' before 'unsigned'
+main.c(12): error: expected ')' before numeric constant
+main.c: In function 'led2_off':
+main.c(16): error: expected ')' before 'unsigned'
+main.c(16): error: expected ')' before numeric constant
+Target not created
+Build target 'Target 1'
+compiling main.c...
+main.c: In function 'led2_init':
+main.c(6): error: expected ')' before 'unsigned'
+main.c(6): error: expected ')' before numeric constant
+main.c(7): error: expected ')' before 'unsigned'
+main.c(7): error: expected ')' before numeric constant
+main.c: In function 'led2_on':
+main.c(12): error: expected ')' before 'unsigned'
+main.c(12): error: expected ')' before numeric constant
+main.c: In function 'led2_off':
+main.c(16): error: expected ')' before 'unsigned'
+main.c(16): error: expected ')' before numeric constant
+Target not created
+Build target 'Target 1'
+compiling main.c...
+main.c: In function 'led2_init':
+main.c(6): error: expected ')' before 'unsigned'
+main.c(6): error: expected ')' before numeric constant
+main.c(7): error: expected ')' before 'unsigned'
+main.c(7): error: expected ')' before numeric constant
+main.c: In function 'led2_on':
+main.c(12): error: expected ')' before 'unsigned'
+main.c(12): error: expected ')' before numeric constant
+main.c: In function 'led2_off':
+main.c(16): error: expected ')' before 'unsigned'
+main.c(16): error: expected ')' before numeric constant
+Target not created
+Build target 'Target 1'
+compiling main.c...
+main.c: In function 'led2_init':
+main.c(6): error: expected ')' before numeric constant
+main.c(6): error: expected expression before ')' token
+main.c(6): warning: type defaults to 'int' in type name [-Wimplicit-int]
+main.c(7): error: expected ')' before numeric constant
+main.c(7): error: expected expression before ')' token
+main.c(7): warning: type defaults to 'int' in type name [-Wimplicit-int]
+main.c: In function 'led2_on':
+main.c(12): error: expected ')' before numeric constant
+main.c(12): error: expected expression before ')' token
+main.c(12): warning: type defaults to 'int' in type name [-Wimplicit-int]
+main.c: In function 'led2_off':
+main.c(16): error: expected ')' before numeric constant
+main.c(16): error: expected expression before ')' token
+main.c(16): warning: type defaults to 'int' in type name [-Wimplicit-int]
+Target not created
+Build target 'Target 1'
+compiling main.c...
+main.c: In function 'led2_on':
+main.c(12): error: expected ';' before ')' token
+main.c(12): error: expected statement before ')' token
+main.c(12): error: expected expression before '|=' token
+main.c: In function 'led2_off':
+main.c(16): error: expected ';' before ')' token
+main.c(16): error: expected statement before ')' token
+main.c(16): error: expected expression before '&=' token
+Target not created
+Build target 'Target 1'
+compiling main.c...
+main.c: In function 'led2_on':
+main.c(12): error: expected ';' before ')' token
+main.c(12): error: expected statement before ')' token
+main.c(12): error: expected expression before '|=' token
+main.c: In function 'led2_off':
+main.c(16): error: expected ';' before ')' token
+main.c(16): error: expected statement before ')' token
+main.c(16): error: expected expression before '&=' token
+Target not created
+Rebuild target 'Target 1'
+assembling start.s...
+compiling main.c...
+linking...
+"led.elf" - 0 Error(s), 0 Warning(s).
