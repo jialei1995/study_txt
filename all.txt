@@ -9,7 +9,6 @@
 		2：系统调用（内核）		**
 		3：库函数				**
 		4：/dev
-		5：文件格式/etc/passwd
 
 	PCI总线：外设部件互联总线（显卡，网卡），pci主要链接显卡网卡
 
@@ -2890,14 +2889,23 @@ class Cat:
 		协议：0--写入字典使用
 			  1--写入list时使用
 		
-		
-		SSL：表示层加密的
-		传输层：tcp/udp
+	
 		网络ip层：ICMP/IGMP跨子网通信（否则）  路由器：路由转发->下一跳
 	进程线程：
 		进程：在普通函数中打印出来的getpid()与主程序中打印出来的getpid一样
 		p = Process(target=f,args=('Jack',))f函数就是个进程，类似linuxc中的线程
 		创建以后要p.start()开启进程，回收用p.join（）
+
+		线程：t1 = threading.Thread(target=fun,args=(x,))  args是个元组
+		t1.setDaemon(True):设置为守护线程，与主线程一起死
+		t1.start()
+		t1.join()--阻塞等待t1死后为他收尸
+
+
+
+		深浅拷贝：b = copy.deepcopy(a)
+		xx  is yy:判断id(xx) == id(yy)??  其实就是是不是一个对象的，一个id表示一个对象
+		xx == yy :判断xx的值是不是等于yy的值呢？？？
 ********************************************人工智能*****************************
 	机器学习：numpy，matplotlib
 		算法：
@@ -3632,14 +3640,11 @@ print("{0} de {1} {2}".format(n1,n2,n3))
 
 
 ——————————————————————————————————————-runhe-------------------------------------
-# linux启动时grub报错
-
 ### grub
 
 - （hd0,gptx）（hd1,gptx）这都是分区名
 - ls (hd0，gpt1)  查看分区格式     带linux的就是存放grub的分区(filesystem is ext2) ext2才是存grub的分区
 - set prefix = (分区名)/boot/grub
-- set root = 分区名
 - insmod normal  安装模块
 - normal 运行模块
 - 进入终端后update-grub
@@ -3664,6 +3669,10 @@ mount -o remount,rw /sysroot
 
 ```c
 grub2-editenv list == 列出来的就是grubenv里面的变量，可以通过grub2-set-default 去设置
+grub-双击tab自动补全：可以查看grub的版本
+grub2-mkconfig生成cfg的好处：
+内核升级的时候会重新根据/etc/default/grub 重新生成cfg文件，所以我们建议改cfg的时候通过改/etc/default/grub
+       然后用命令生成cfg文件。
 initramfs生成：dracut -H -f /path/initramfs-$(uname -r)  $(uname -r)
     	其实安装内核的时候再post阶段就会有这个命令
     	rpm -qa --scripts xxx包名
@@ -3744,6 +3753,12 @@ cat > $filename << EOF
 XXX
 XXX
 EOF  可以将中间的内容放到文件当中
+
+操作文件中的行
+while read line
+do 
+	op $line
+done < file.txt
 ```
 
 
@@ -3842,6 +3857,7 @@ top  后   P：cpu从高到底显示
 ​				M：内存从高到低显示
 
 ​				1：多个cpu信息都显示出来
+ 			top p pid1 p pid2--->动态监控pid1与pid2的状态
 
 ls > 1.txt ==== ls 1>1.txt 标准输出流到1.txt
 ls 1>file  2>&1  把标准错误流给标准输出流，把标准输出流 存到 file中
@@ -4092,6 +4108,7 @@ cells= sheet('A:Z')
 ```c
 systemctl rescue  进入rescue模式，单用户
 systemd-analyze   查看开机启动耗时
+systemctl --faild  查看启动失败的单元
 systemd 解决fs的依赖
 		接触Dbus的依赖-依赖Dbus的进程可以直接启动，Dbus会假启动。
 crypt：加密相关的工作
@@ -4299,6 +4316,8 @@ tmux ls:查看挂起的会话有几个
 ### LINUX任务调度，定时任务 crontab---/etc/crontab
 	/var/log/cron  定时日志
 	修改完/etc/crontab文件后要重启crond.service服务你的任务才会生效
+	定时运行的脚本应将屏幕输出重定向到/dev/null-->root sh xx > /dev/null 2>&1
+	否则每次的输出会新建文件，很快会占完目录的inode节点
 
 ```c
 crontab -e  添加任务
@@ -4629,6 +4648,7 @@ scp重复拷贝同一文件名到det的相同目录会覆盖之前的文件。
 fsck.ext4 -y /dev/mapper/root  会修复文件系统，按照ext4格式
 df -h  查看磁盘空间
 du -h --max-depth=n 查看几层目录结构的文件占用
+du -h -d x 同上行
 du -sh .
 df -i 查看磁盘的inode使用情况，inode用完的话就不可以再创建文件了
 
@@ -4726,3 +4746,41 @@ C中凡是宏定义中有#或者##的参数不会再展开
 exp:
 #define s INT_MAX  本来s可能是个整数
 #define STR(s) #s    但是在这里s不会展开，STR(s)就是个字符串了
+
+------------/dev设备
+/dev下设备文件不是驱动程序--相当于一个访问外设的端口
+磁盘类型：IDE类->hd[a-t]
+	     SCSI类->sd[a-z]
+tty[0-63]->虚拟终端
+ttyS[0-3]-->串口
+console-->控制台
+
+------加压
+内存加压：写c程序
+写python脚本
+memtester  XG 加压Xg
+
+cpu加压：press_64 -c 50  加压cpu至50%
+
+
+如何判断本系统是efi：
+lsblk有个分区就是efi
+efibootmgr -v 可以看到启动文件shimaarch64.efi文件的位置
+linux启动分析：
+1.解压内核
+2.注册内存文件系统，挂在到root，此时的root是内存文件系统，不是我们平时的存在磁盘的root
+3.解压initramfs到root
+4.1号进程+基础服务
+5.切到真实的root，重启systemd+服务
+
+fdisk -l / parted -l :查看挂载点的fs类型
+zcat initramfs.img |cpio -div  解压initramfs
+lsinitrd initramfs.img 只查看其中的内容，不解压
+ls (hd0,gpt2)/ 双击tab，如果能看到vmlinux与efi，说明这就是启动分区
+set root=(hd0,gpt2) 或者 set root = "hd0,gpt2"  这步以后ls看到的就是/boot里面的东西了
+
+chroot . bash --login  加后面的参数就不会打印command not find 啦  /bin/bash
+sha256 值只与文件中的内容有关，与时间戳无关，文件名也无关
+
+如何判断当前机器是物理机还是虚拟机：
+dmidecode -s system-product-name
