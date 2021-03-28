@@ -298,12 +298,21 @@ io：
 		线程中得有syscall才能取消，有取消点（函数的底层会调syscall）可以自己加一行pthread_testcancle();取消点
 		杀死的进程得回收资源，此时join到的线程的返回值是-1.(固定的，死记住)
 线程的退出：在线程函数中不要调用exit函数，会导致整个进程结束。
-		****线程可以被同一进程中的其他线程取消
+		****线程可以被同一进程中的其他线程取消	
 			调用pthread_exit(void*val)与return x；这2种类似
 线程信号：pthread_kill
 
 stdlib.h中的
 system（“ls”）；可以在程序中执行命令。
+
+os库函数：
+os.popen("cmd")可以执行命令，特点是不会与界面交互
+os.system("cmd")，特点是会与界面上交互
+os.rmdir() 强制删除
+os.remove()  Python无权限删除windows中的文件，所以会执行失败，在linux中可以成功
+
+dos命令：
+copy 1.txt 2.txt 相当于linux的cp
 
 线程间通信：可以在用户空间就通信，通过全局变量。
 进程：ps -ef |more  所有进程一瓶一瓶显示或者|grep查找想看的进程 如：test
@@ -2914,10 +2923,11 @@ class Cat:
 		SVM：支持向量机
 		强化学习：有奖惩机制（环境反馈）作为输入，输出结果可以作为输入
 	opencv：
-	TensorFlow：
+	TensorFlow：人工智能框架--谷歌的
+	mindspore：华为的人工只能框架：自动并行，二阶优化，全场景协同
 
 	深度学习：
-		卷积神经网络：
+		卷积神经网络：CNN
 		案例：语音识别
 		百度AI平台使用
 			人脸对比，语音合成，语音识别
@@ -4264,9 +4274,12 @@ kill -11 pid：将pid触发coredump
 coredumpctl gdb pid:去调试这个dump的进程
 ulimit -c：如果是0，程序宕的时候不会产生core文件
 	  ulimit -c unlimit  这样程序down的时候就会在某个目录下产生core文件（/var/lib/systemd/coredump）
+	  产生core文件的路径在/proc/sys/kernerl/core_pattern 文件中可以设置，还有core的文件名也是
+	  /tmp/core-%e-%t  时间+命令名字
 	  coredumpctl list：查看down掉的程序的进程号-coredumpctl gdb pid调试down的进程(有core文件才能调)
 						列出来当前的coredump事件
-watch：gdb调试的时监控某个变量    *****显示的更详细，还带的上次的值类似： dispaly num1
+watch：gdb调试的时监控某个变量    *****显示的更详细，还带的上次的值类似： dispaly num1   
+    where:程序在那行dump的呢？
     Hardware watchpoint 3: j
     Old value = 104
     New value = 105
@@ -4784,3 +4797,9 @@ sha256 值只与文件中的内容有关，与时间戳无关，文件名也无�
 
 如何判断当前机器是物理机还是虚拟机：
 dmidecode -s system-product-name
+
+
+-------------------------贪心算法
+求局部最优解来达到整体最优效果
+1.分饼干（先排序饼干与小朋友）
+2.区间问题（区间去重）（先排序，按照区间结尾排序）
