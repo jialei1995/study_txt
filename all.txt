@@ -1888,6 +1888,9 @@ Connection closed by foreign host.
 		卸载：rmmod+demo  ---------对应module_exit(demo_exit);出口函数【卸载】	module_exit();
 
 		modinfo ./hello.ko查看模块的相关信息
+		最后一行的versionmod:就是编译mod时的内核版本。
+		mod安装不上时可能是当前内核是A，而编译此mod的内核是B，所以不能insmod。
+		
 		模块传参：  在源码中写好可以传参，然后模块安装的时候就可以传参进去
 				代码.c中也要有配置才行
 				int x；
@@ -4357,7 +4360,11 @@ crontab -r  删除任务  执行成功没有输出log，若再执行就会输出
 cat /dev/mice   当鼠标移动、按键按下的时候便会输出log
 /boot 挂载点挂载的（hd0,1） 如果将/boot umount系统依然可以启动进入grub界面，因为此阶段是bios或efi硬件控制的，bios可以找到第一个启动盘的位置，就可以进入grub
 但是如果将（hd0,1）里面的内容修改掉，就进不去grub界面了，因为grub文件彻底没有了。
+
 /dev 目录中的文件拷贝粘贴用：dd if xxx  of yyy 
+可以直接创建文件，文件大小不为0但是文件里面都是0，cat与vim时啥也看不到
+相当于初始化了个缓冲区，初始化都是0.
+
 若扇区中grub丢失，都进不了grub界面，得通过挂载iso去以rescue模式启动：
 		iso文件：都是只读的，挂载到某个目录下的时候此目录也是只读的，无法更改目录内的东西，可以考出去更改（因为是对目录没有权限）
 修复扇区的方法：grub-install  /dev/sda  产生grub文件
@@ -4479,8 +4486,14 @@ tree  dirname：看此目录的结构
 ```c
 crush/crash /usr/lib/xxxx/vmlinux  vmcore
 vmlinux在下载kernel-debuginfo就有了，不下载系统中没有vmlinux
-echo c > /proc/sysrq 会触发kdump
+echo c > /proc/sysrq 会触发
+kdump是基于kexec的
+kexec是快速重启服务，会跳过bios
+kdump服务开启时，捕获内核就准备工作了--随时准备收集日志。
+x86的RIP寄存器就是arm的PC寄存器。
 vmcore在/var/crash/xxx/vmcore 路径
+分析vmcore就是看pc指针寄存器：
+dis pc 看到底怎么触发的dump，然后看sym pc看dump对应的具体代码行。
 观察PANIC与COMMAND的描述(就是在command命令执行的时候宕机的)
 mod -S /path/自己编写的模块的路径   导入模块的符号表(函数名字与变量)
 bt：查看调用栈
@@ -4803,3 +4816,42 @@ dmidecode -s system-product-name
 求局部最优解来达到整体最优效果
 1.分饼干（先排序饼干与小朋友）
 2.区间问题（区间去重）（先排序，按照区间结尾排序）
+
+--------mysql
+登录：mysql -uroot -pxxx
+show databases;打印出现有数据库
+use 数据库名字； 选择准备操作的数据库
+
+select * from tablename;  查询
+insert into table values(x,y,z);  增加
+delete from table where name='xx';  删除
+update table set name='yy' where id='xx'; 修改
+
+create datebase xx;创建数据库
+create table xx(name 数据类型，id 数据类型，...); 创建表
+
+数据类型：
+数值 int float
+日期：date
+子串：char varchar
+
+约束：
+主键，自增，not null,unique
+主键：primary key()
+自增：auto_increment;
+
+联合主键：两者整体唯一即可，不需要每个都唯一=====联合unique
+
+alter table xx  add primary key(id);  增加主键
+alter table xx drop primary key; 删除主键
+alter table xx drop index name; 删除unique
+
+约束添加方式：
+1. 创建table时
+2. alter xx add xx
+   alter xx modify xx
+   alter xx drop xx  删除
+外键约束：
+foreign key(class_id)  references class (id);
+表1中的字段class_id 等于 表2class中的id字段
+
