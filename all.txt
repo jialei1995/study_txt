@@ -316,7 +316,10 @@ copy 1.txt 2.txt 相当于linux的cp
 
 线程间通信：可以在用户空间就通信，通过全局变量。
 进程：ps -ef |more  所有进程一瓶一瓶显示或者|grep查找想看的进程 如：test
-	ppid：父进程号
+ 	ps -aux 中的S+状态表示：正在睡眠随时会到R+状态，因为时间片刚好过去。并不能表示程序真的卡住了
+	ps -axo stat pid,ppid,pgid==pgrp,comm  查看进程组号，组id可能与ppid一样也可能不一样
+	ps -p 进程id -o pgrp  看进程所属组id
+	ps  -Lf  pid:查看进程中的线程
 	nice -n 2 ./test 改变优先级（只针对没有运行的进程）
 	renice 可以更改正在运行的 进程优先级
 	jobs  查看所有的后台进程
@@ -353,8 +356,7 @@ copy 1.txt 2.txt 相当于linux的cp
 		WIFSIGNALED(status)  子进程被信号打断，返回true
 		WTERMSIG(status)     得到子进程被那个信号终止
 	
-	ps  -Lf  pid:查看进程中的线程
-	火狐浏览器一打开：就可以看到分配了几十个线程（线程池）
+		火狐浏览器一打开：就可以看到分配了几十个线程（线程池）
 	nLwp:多少个线程
 	Lwp：线程号（线程号不是线程id，cpu轮换就是根据线程号轮换的
 				线程id：进程内区分pthread_self()获取线程号）
@@ -598,7 +600,7 @@ SYSTEM-V IPC 通讯机制：
 			（5）进入需要的循环while（1）			避免浪费资源，0,1,2开着没啥用	
 
 进程组的概念：只有父进程的进程组是自己，子进程的进程组是父进程。
-		kill -9 -pgid   一次杀死所有进程组的进程    （区别父进程与进程组的概念）
+		kill -9 -pgid   一次杀死所有进程组的进程,'-'pgid    （区别父进程与进程组的概念）
 
 		getpgrp() :获取当前进程的进程组id
 		getpgid(pid) ：获取指定进程的进程组id  成功0，失败-1置errno
@@ -2295,7 +2297,8 @@ spi:时钟是主机产生的，每个spi周期传输1bit数据
       $ sudo umount /mnt/  
       umount卸载时显示：busy--
        fuser  -vm /mnt(挂载点)  看看那个进程占用了此目录，kill掉就可以umount了    
-
+       fuser -cu /mnt  kill查到的进程
+       记住不能在mnt目录里面进行umount，不然就说busy
       inode结构体:
       		每个文件（包含字符设备文件）都有自己的inode结构体
       cdev结构体：
@@ -3536,6 +3539,16 @@ int main()
 	cat -n 文件名 显示出来的时候带行号
 	head 文件名：查看文件头10行
 
+----tr小工具
+command |tr 'A-Z' 'a-z'
+tr 'A-Z' 'a-z' < filename   字母大小写转化
+tr -d 'a-zA-Z :/'  < filename :删除文件中的字母、空格、冒号、/
+tr -s 'a-z' < file 压缩相同的挨着的小写字母，压成一个 
+---paste小公举
+paste -d： file1 file2  并排合并打印，以:分割
+paste file1 file2 并排合并打印，以tab分割
+patse -s file1 file2 串着合并打印，一个文件中合并成一行
+
 shell脚本如果./test.sh不给你说哪一行有问题。
 		所以建议用解释器运行：bash test.sh---会给你说哪一行有问题
 
@@ -3629,7 +3642,6 @@ el8在openeuler都是定义过了的。spec中要注意
 {?fedora30} == 30
 {？rhel} == 8
 
-docker容器进入后ps -ef发现1号进程是/bin/bash
 curl baidu.com  返回页面信息
 curl -A 'Mozila' baidu.com 制定agent
 .webp 是谷歌新出的一种图片格式
@@ -3699,7 +3711,6 @@ gpt分区：现在用的比较多-windows64 位以后基本都用的这种方式
  + 无限多的分区
  + 无限大的容量
  
- ps -aux 中的S+状态表示：正在睡眠随时会到R+状态，因为时间片刚好过去。并不能表示程序真的卡住了
  
 ```
 
@@ -3918,6 +3929,7 @@ docker load --input   xx.tar.gz   将这个镜像压缩包安装到os中
 
 - vim 1.c +18直接打开就是第18行
 - diff -Nur在那个目录执行   打patch时就在那个补录打可以时-p0  在目录里面就开始-p1  -p2  
+diff -q dir1 dir2  只对比文件名，不对比内容
 patch -p0 < 1.patch --fuzz=0
 patch -RE < 1.patch 退回来打进去的patch
 vim中左括号跳右括号：%
@@ -4159,7 +4171,9 @@ LE：逻辑区域，是逻辑分区中的可分配的最小单元 === PE，物�
     			mount /dev/lvpath1  /home
 根目录空间不够了：如果此时vg还有剩余的PE，可以：
 lvextend  l+1122(空闲PE，可通过vgdiaplay查询)  /dev/openeuler/root   扩了硬件
-ext2online /    同时扩容fs，扩fs
+ext2online /    同时扩容fs，扩fs   扩fs的命令有可能是下面的
+resize2fs /dev/mapper/open-root  扩展fs
+/dev/mapper/openeuler-root ==== /dev/openeuler/root是软连接
 还可以这样扩硬件：lvextend L+55G  /dev/openeuler/root   ext2online  /
 
 若卷组空间不够了：
@@ -4180,6 +4194,7 @@ sr0-------光驱
 2.对硬盘分区fdisk /dev/sdb
 	m+n(add 分区)+p（主分区）+默认enter+默认enter+w（写入）  ok了
 	lsblk 可以看到/dev/sdb1了
+	分配的时候默认会占用所有磁盘中剩余空间，如果想多分几个区，可以不要按照默认enter，自己+xxG去分配。
 3.格式化（mkfs）
 	mkfs -t ext4 /dev/sdb1   
 4.挂载--设置自动挂载（fstab文件）
@@ -4187,6 +4202,10 @@ sr0-------光驱
 最后记得mount -a 启动自动挂载
 Elapesed time：运行时间
 
+***扩展fs的方法
+pvs  
+vgs
+lvs  简单的显示
 
 
 
@@ -4855,3 +4874,27 @@ alter table xx drop index name; 删除unique
 foreign key(class_id)  references class (id);
 表1中的字段class_id 等于 表2class中的id字段
 
+---openvswitch缩写就是ovs
+ovs-vsctl add-br br0增加网桥br0--网桥就是虚拟路由器，创建的网桥默认有个虚拟端口br0
+ovs-vsctl add-port br0 eth0  给br0增加eth0的物理端口
+
+---ulink
+ulink删文件时，已经打开的文件不会立即删除，依然可以进行读写，但是进程结束后文件就会被删除
+
+----socket
+1. tcp、udp中的socket是自己调用socket时产生的，可以在/proc/pid/fd 目录中看当前进程打开的socket信息、pipe信息
+2. unix域通信时，bind(socketfd,sockaddr,xx);sockaddr中包含具体的套接字文件，这种方式的socket的名字是可以自己设定的
+总节：tcp、udp中网络搭建靠的是ip+port
+	unix域通信时，靠的就是程序中指定的socket（自己可以命名）
+----linux中重要的文件
+/etc/hosts  本地域名解析
+/etc/resolve.conf  域名解析/DNS服务器---还可以在网卡文件中配置，重启网卡，这里就会更新
+
+
+--sysmonitor关了UVPHostd才能关闭，uvphostd关了无法获取带内信息
+但是sysmonitor关着的时候UVPhostd可以开启
+
+wait_running 检查
+1.检查vmtools状态--通过getInbondinfo返回值判断
+2.通过inside_mode改成pty，通过virsh send-key virtname KEY_ENTER,KEY_R,XXX检查返回值判断
+利用virsh send-key virtname KEY_R，不断发送字母会发到vnc界面可以观察到，但是ssh链接的界面看不到。
