@@ -3056,7 +3056,7 @@ xmind：
      c  拷贝别人，安装好的过来。（有可能ubuntu有问题）
 2. 拷贝gcc-4.6.4.tar.xz 到linux某目录下,并解压tar -xvf gcc-4.6.4.tar.xz
    进入解压后的gcc-4.6.4/bin   输入pwd 查看当前路径（如/home/farsight/gcc-4.6.4/bin)
-   输入 export PATH=$PATH:/home/farsight/gcc-4.6.4/bin       
+   输入 export PATH=$PATH:/home/farsight/gcc-4.6.4/bin  将后面的变量变成临时环境变量而不是临时变量     
    注意：这种方式只是当前有效，重启后消失。
      想永远有效，需追加该行到当前用户启动脚本（~/.bashrc）的末尾，方法： 
        $ vim  .bashrc
@@ -3585,12 +3585,17 @@ shell脚本如果./test.sh不给你说哪一行有问题。
 	expr  程序       expr 10 / 5  **这个用的时候‘运算符’左右要加空格  乘号*用的时候要加转义字符\*
 	let   程序    	n=1;let n+=1
 条件判断语句：
-	test关键字  
-	[  ]   不支持正则（2边要有空格）
-	[[  ]]  支持正则（2边都要有空格）
+	test+表达式  
+	[  ]   不支持正则（2边要有空格）字符串必须用""抱起来
+	[[  ]]  支持正则（2边都要有空格）字符串不需要用""包
 	判断2个字符串是否相等： test $s1 = $s2 等号两边都有空格，没空格是赋值
 						[ $s1 = $s2 ]  等号两边都有空格，[]中括号也是
 	if [ xxx ]：if后面也有‘ ’的，要注意
+	-z :字符串为空
+	-n ：字符串不为0
+	linux怎么判断两个文件一样：看inode号->ls -li file--->[ a -ef b ]
+	判断文件是否为空[ ! -s file ]
+	不会了man test关键字查
 循环：
 	for i in{1..5}    打印5次你输入的第一个参数
 	do 
@@ -3603,6 +3608,7 @@ shell脚本如果./test.sh不给你说哪一行有问题。
 		sum=$[$sum+$i]
 	done
 	echo $sum
+if 条件：a else b fi == 条件 && a || b
 
 
 至多有1个（<=1）------(>1)至少2个
@@ -3842,8 +3848,10 @@ realpath  fielname    filename的绝对路径
 
 who 显示当前哪些windows的ip在登录本机器。
 tty：终端设备(ctl+alt+F1~F7)前6个是文本吧，第7个是界面。命令行直接输入tty，可以看到当前是ptsx几号终端
-pty：虚拟终端(它只是主机的/dev/ptsn在winows的映射)
+pty：虚拟终端(它只是主机的/dev/ptsn在winows的映射)--ssh、serial都会增加这个里面的数量
 lsblk  查看当前挂载的磁盘（硬盘）分区
+ttyAMA0 arm的串口
+ttyS0 x86的串口
 
 brctl  show:查看我的网桥连接的哪些网卡  ---桥接
 网桥就相当于电脑中的交换机：此电脑中的所有的虚拟机ip与外界通信都通过此网桥的ip
@@ -4386,6 +4394,8 @@ cat /dev/mice   当鼠标移动、按键按下的时候便会输出log
 
 若扇区中grub丢失，都进不了grub界面，得通过挂载iso去以rescue模式启动：
 		iso文件：都是只读的，挂载到某个目录下的时候此目录也是只读的，无法更改目录内的东西，可以考出去更改（因为是对目录没有权限）
+boot分区被破坏：
+
 修复扇区的方法：grub-install  /dev/sda  产生grub文件
 			 setup  (hd0)  安装至hd0扇区
 
@@ -4499,6 +4509,8 @@ client：安装vsftpd此软件安装后既有server，也有clinet。
 		上传：put filename
 		下载：get filename
 tree  dirname：看此目录的结构
+dirname file:看此文件的绝对目录路径
+basename file：只看此文件的文件名
 
 ### linux宕机
 
@@ -4898,3 +4910,36 @@ wait_running 检查
 1.检查vmtools状态--通过getInbondinfo返回值判断
 2.通过inside_mode改成pty，通过virsh send-key virtname KEY_ENTER,KEY_R,XXX检查返回值判断
 利用virsh send-key virtname KEY_R，不断发送字母会发到vnc界面可以观察到，但是ssh链接的界面看不到。
+
+-----/tmp 目录，相当于windows的回收站   10天就会自动删除
+以后别删东西，都往这里放
+
+---启动界面无log信息，往cmdline参数中加console=tty0
+无法virsh console 往cmdline加console=ttyAMA0(arm)或ttyS0
+
+----boot分区被破坏如何恢复
+现象：低版本linux黑屏，啥都看不到；高版本linux进入grub_resue>命令行
+解决办法：
+1.挂载对应的iso以cdrom方式启动，进入Troublbooting模式---即平时说的rescue模式
+2.选择continue选项-->os自动选择根-->可以自动挂载原来的镜像
+3.格式化原来的boot分区之前挂载/boot的磁盘
+4.挂载启动磁盘，然后开始给boot目录中添加启动所需文件
+	-安装kernel包提供：linux内核与initramfs
+	-安装grub:
+		+grub-install /dev/sda1:安装部分grub文件
+		+用grub命令进入grub界面
+		+set root=(hd0,0)  设置启动分区
+		+setup (hd0) 往启动分区加开机文件--->注意这里是（hd0）
+
+磁盘的mkfs会修改磁盘的UUID，所以以后fstab中建议用UUID而不是直接写路径，容易弄错。--除非UUID改变
+
+---nginx：支持高并发的反向代理server
+1.客户端不需要看待真实的server就可以通过反向代理server从真实的server中获取数据
+2.www.freecplus.com----->192.157.2.2:80----->真实ip+port8080
+3.apache-tomcat是做真实的server的，一个server就是一个tomcat进程
+4.nginx就是中间配置客户端与真实server之前的配置
+5.实现高并发、反向代理、负载均衡(一个请求被多个server处理)
+6.负载均衡方式：
+	+ fair （自动调节）
+	+ 默认（轮询server）
+	+ weight（调节每个server的权重去均衡）
