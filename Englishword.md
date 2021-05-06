@@ -11,6 +11,8 @@ synchronize  同步
 horsepower  马力
 relay 继电器
 tap 水龙头，开关
+implict	隐士转换
+precede  在..之前
 
 ```
 
