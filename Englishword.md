@@ -14,5 +14,6 @@ tap 水龙头，开关
 implict	隐士转换
 precede  在..之前
 unicast  单播
+restore   恢复
 ```
 

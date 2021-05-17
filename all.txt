@@ -4010,10 +4010,6 @@ pcb的本质就是个400多行的结构体描述进程
 
 ### 开机自动挂载在/etc/fatab设置
 
-crush>:help  查看crush中的指令
-bt：显示调用栈
-bt pid显示对应的进程的调用栈
-
 ### mount -t iso9660 -o ro /dev/cdrom /mnt
 
 ​                    类型 ISO           挂载方式   只读  
@@ -4550,9 +4546,7 @@ dirname file:看此文件的绝对目录路径
 basename file：只看此文件的文件名
 
 ### linux宕机
-
-```c
-crush/crash /usr/lib/xxxx/vmlinux  vmcore
+crash /usr/lib/xxxx/vmlinux  vmcore
 vmlinux在下载kernel-debuginfo就有了，不下载系统中没有vmlinux
 echo c > /proc/sysrq 会触发
 kdump是基于kexec的
@@ -4563,14 +4557,39 @@ vmcore在/var/crash/xxx/vmcore 路径
 分析vmcore就是看pc指针寄存器：
 dis pc 看到底怎么触发的dump，然后看sym pc看dump对应的具体代码行。
 观察PANIC与COMMAND的描述(就是在command命令执行的时候宕机的)
+DATE表示：发生panic的时间
+UPDATE:表示os已经运行的时间
+TASKS：发生panic时的os中的进程总数
+PID：表示发生panic的任务号
+STATUS:表示发生panic的任务当前的状态
+命令：
+---
+bt -a：查看所有cpu栈
+bt：查看当前cpu栈
+bt -f 查看所有堆栈
+bt -i:显示堆栈trace的文件与行号
+bt pid显示对应的进程的调用栈
+---
+net:列出网络设备
+net -a：显示arp cache
+net -s：列出所有的socket
+---
+rd 0x12345 8 直接读内存，读8个byte
+---
+dev:查看os中块设备与字符设备信息
+files:查看panic时的任务打开的所有文件的信息
+irq：显示相应的中断信息
+mount：显示挂载的fs的信息
+mod：显示或加载内核模块
+
 调试流程：
 mod -S /path/xx.ko自己编写的模块的路径   导入模块的符号表(函数名字与变量)
 bt：查看调用栈
 	[exception RIP:funname+12]:宕机的函数-->附带宕机时各个reg的值
-dis -r funmane+12   反汇编查看死机函数对应的汇编
+dis -r/l funmane+12   反汇编查看死机函数对应的汇编
 eval + 10进制数字--->查看对应8进制，16进制，2进制数字
 ascii + 16进制数字串---->查看对应ascii字符是什么
-sym  0xnnnnnnnn 查看该地址下的变量名
+sym  0xnnnnnnnn或函数名 查看该地址下的变量名，找到该地址/函数 对应的地址、函数、文件、行数
 ```
 host www.baidu.com  查看域名对应的ip(底层怎么查的：看/etc/resolve.conf DNS域名解析server)
 												此server是可以改的可以设置多个dnsx：
@@ -5024,5 +5043,16 @@ iostat -d -k 1 10：-d表示device  -k表示单位是千
 2. 支持全虚拟化+半虚拟化
 
 libvirt提供了virsh命令
-
-
+---
+date -s 修改的是os时间，重启失效需要写入CMOS硬件
+clock -r /hwclock --show查看硬件时间
+clock -w 写入cmos当前os时间
+----GIochannel--相当于一个文件描述符
+channel = g_io_channel_unix_new(fileno(fp));
+g_io_channel_read_chars(channel_buf,xx,yy);可见实际就是将fd转换成channel而已，因为channel有个主事件循环可以监控此通道
+channel：集成pipes,socket,普通文件的打开 的任意一种的fd至主事件循环---可以处理指定事件
+----国产CPU厂商
+x86：AMD/Intel、上海兆芯、中科院海光
+ARM：华为鲲鹏、天津飞腾
+MIPS：中科院龙芯-性能较低，市场不好
+alpha：申威，性能高、单处理器达260核心
