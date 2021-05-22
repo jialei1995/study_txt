@@ -15,5 +15,12 @@ implict	隐士转换
 precede  在..之前
 unicast  单播
 restore   恢复
+suspend  暂停
+implicit 隐含的
+literature  文学，文字的
+specifier  解释符，说明符
+inconsistent 不一致的
+consistent  一致的
+deprecate  弃用
 ```
 

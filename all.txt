@@ -9,11 +9,17 @@
 		2：系统调用（内核）		**
 		3：库函数				**
 		4：/dev
+		
+	定位问题：CI工程上构建的sha256值与自己编译的不一样（etc/profile环境变量未生效）
+			  网卡数量太多，导致查询带内信息失败。网卡缓冲区不够。
+			  用例查询开机失败：通过pty的方式查询，通过vmtools状态查询。
+			  
 
 	PCI总线：外设部件互联总线（显卡，网卡），pci主要链接显卡网卡
 
 	useradd jl;增加用户
 	userdel jl；删除用户  之后还要rm /home/jl
+	userdel -r jl:彻底删除用户。
 
 	chown root /home/test  把这个目录或文件的属主设为root，别人就不能访问(还看对other的访问权限0664.)
 	chown jl:jl 1.c   目录或文件属主root group：root
@@ -323,6 +329,7 @@ copy 1.txt 2.txt 相当于linux的cp
 				T sigstop信号，sigcontinue将此状态变成R，例如GDB调试时等待输入。
 				D 处于D状态的进程可以通过查看/proc/pid/stack 文件下的调用栈。
 	ps -axo stat pid,ppid,pgid==pgrp,comm  查看进程组号，组id可能与ppid一样也可能不一样
+	ps j也能查pgid号
 	ps -p 进程id -o pgrp  看进程所属组id
 	ps  -Lf  pid:查看进程中的线程
 	nice -n 2 ./test 改变优先级（只针对没有运行的进程）
@@ -2363,6 +2370,9 @@ spi:时钟是主机产生的，每个spi周期传输1bit数据
     		val = ioread(p)
     		iowrite(val,p)
     	3.iounmap
+		ioreadl/iowritel-> 对io内存的op
+		iol/iob/iow->对硬件地址读
+		outb/outl/outw->对硬件地址写数据
     linux内核内存分配
     	按页申请内存
     		__get_free_pages(int gfp_mask,ulong order);
@@ -3045,6 +3055,19 @@ cubemx：
 	timer中断的时候，触发中断的是update事件，隔1s就会触发1次，所以隔1s就会调用1次timer的中断处理函数（timer开启start后就会不断有update事件）
 	串口的中断回写：串口只有收到数据才会回写，所以需要有recv函数收到东西才行，所以recv需要在while（1）中，才能接受所有的接收消息事件-->触发中断void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)重写这个函数
 
+	DMA:外设不经过CPU直接与mem交换数据
+	通常OS总线由CPU管理，开启DMA方式时，CPU让出对总线的控制权，由DMA控制器接管
+	DMA传完后CPU继续接管总线
+	特点：
+		1.向CPU提出接管总线的要求
+		2.能对内存寻址，修改地址指针，对之进行读写
+		3.决定发送字节数
+		4.发end信号，结束对总线的控制，将权力交给CPU
+	DMA传输过程：
+		1.预处理，CPU设置相关寄存器(使能DMA时钟)
+		2.IO设备向DMA发DMA请求，DMA向CPU发BUS请求
+		3.循环读写，完全由DMA控制器控制
+		
 	***函数以外不能直接调函数，函数的调用要在函数内部。
 
 	调试：
@@ -3706,10 +3729,10 @@ bios/uefi->bootloader->kernerl->initramfs->systemd->switchroot->rootfs->systemd
   initramfs：内存中的fs--内存中的systemd
   switchroot:切根--重新起systemd拉起别的服务
 
-console=tty0  + rd.break  -->switch_root#:
-			  + rd.break=pre-moune --->pre-mount
-			  + rd.shell
-			  + systemd.debug-shell=1
+console=tty0  + rd.break  -->启动至switch_root#:，这会/sysroot已经挂载了。要改密码得重新remout磁盘权限为rw
+			  + rd.break=pre-moune --->启动至pre-mount，这会/sysroot还未挂载  要改密码得挂载磁盘为rw。如果fs有问题可以到这个阶段修复fs
+			  + rd.shell  -->与普通开机一样好像
+			  + systemd.debug-shell=1  -->与普通开机一样好像
 mount -o remount,rw /sysroot
 - 现在centos7的启动1个systemd接管所有的unit，即使b依赖a。在a还没启动的时候就会发出1个a已经启动成功的信号，所以b就可以直接启动了。这样所有unit都一起启动。
 - 启动配置文件
@@ -3851,7 +3874,7 @@ strace -e open,close ./a.out 只查看a.out中的open，close这两种syscall
 strace ./a.out   查看每个syscall花费的时间
 strace ping baidu.com   查看此过程中的syscall
 strace dmesg：查看dmesg是怎么打印到屏幕上的
-
+ping谁谁就会给你回消息，a->b,b->a;
 dlopen:man一下
 
 access  判断文件是否存在的系统调用
@@ -4420,7 +4443,7 @@ cat /dev/mice   当鼠标移动、按键按下的时候便会输出log
 /boot 挂载点挂载的（hd0,1） 如果将/boot umount系统依然可以启动进入grub界面，因为此阶段是bios或efi硬件控制的，bios可以找到第一个启动盘的位置，就可以进入grub
 但是如果将（hd0,1）里面的内容修改掉，就进不去grub界面了，因为grub文件彻底没有了。
 
-/dev 目录中的文件拷贝粘贴用：dd if xxx  of yyy 
+/dev 目录中的文件拷贝粘贴用：dd if /dev/zero  of yyy bs=1G count=1 
 可以直接创建文件，文件大小不为0但是文件里面都是0，cat与vim时啥也看不到
 相当于初始化了个缓冲区，初始化都是0.
 
@@ -4626,7 +4649,7 @@ fusion computer:融合计算
 nfv：网络虚拟化
 trace：跟踪
 pendding：待处理
-bond：网卡
+bond：网卡组
 nic：网卡
 raise：失败用例
 cdrom：光驱
@@ -4745,6 +4768,7 @@ inode：icount--正在打开此文件的进程数量
 readelf -h xx.a/xx.so/a.out   查看此二进制的运行架构
 
 ip route:查看当前机器的路由是谁
+route -n 
 动态分配ip的虚拟机的路由与掩码不用自己设置，所以以后就用动态分配吧 dhcp默认指定了路由
 修改/etc/sysconfig/netcork-scripts/ifensn后
 需要执行：nmcli con reload enp1s0
@@ -4771,6 +4795,10 @@ lsscsi：查看bus总线是scsi的磁盘信息
 
 python：CDLL("/usr/lib/xxx")  加载动态库
 几个网卡会组成bond：增加带宽
+安装bonding模块，修改bond的配置文件后才能bond网卡：ifenslave bond0 eth0 eth1
+bond模式：0->两个网卡交替收发数据，速度快，一个坏了另一个也能用
+		1->收发数据只通过一个网卡，另一个备用着。
+配置文件：/proc/net/bonding/bond0
 
 expect：需要安装
 脚本第一行：#/bin/expect
@@ -4959,6 +4987,7 @@ ulink删文件时，已经打开的文件不会立即删除，依然可以进行
 2. unix域通信时，bind(socketfd,sockaddr,xx);sockaddr中包含具体的套接字文件，这种方式的socket的名字是可以自己设定的
 总节：tcp、udp中网络搭建靠的是ip+port
 	unix域通信时，靠的就是程序中指定的socket（自己可以命名）
+tcp也不是一定会4次挥手，有时候就是三次挥手。
 ----linux中重要的文件
 /etc/hosts  本地域名解析
 /etc/resolve.conf  域名解析/DNS服务器---还可以在网卡文件中配置，重启网卡，这里就会更新
@@ -5056,3 +5085,33 @@ x86：AMD/Intel、上海兆芯、中科院海光
 ARM：华为鲲鹏、天津飞腾
 MIPS：中科院龙芯-性能较低，市场不好
 alpha：申威，性能高、单处理器达260核心
+-----
+c在while中定义的变量出了while无法访问
+python在while中定义的变量出了while还可以访问。
+python：--神奇的用法
+父类：self.属性=子类（）
+子类（父类）：继承
+调用：父类定义父对象，父对象.属性.子类的方法（）
+----samba服务器搭建
+samba是在linux中搭建server，然后别的windows可以连接这个samba去查看修改指定服务器的某个路径的内容
+1.修改配置文件：/etc/samba/smb.conf
+2.增加samba用户（必须是linux用户）:smbpasswd -a username
+3.windows通过映射网络驱动器连接server
+---pacharm搜索快捷键：Ctrl+N可以搜文件名，内容。
+os中的systemctl status network状态是fail不是说内部网络不正常，10张网卡一个没分配上ip就会报fail的。
+
+---IPSAN
+共享存储服务器
+可以同时将多个server的磁盘共享到同一个server中
+---
+华为的云核FS，中兴的TESC都适合基于openstack二次开发的OS
+
+----
+dpkg -S file：查看文件对应的deb软件包
+swap 空间是磁盘空间，不是硬件的内存，这种磁盘可以当做内存用
+swappiness=0：先用物理mem，然后再用swap的mwm
+swappiness=100：先用磁盘，这样的os速度很慢，会很卡
+默认值是60，意思是当内存使用超过40%时，就开始用swap磁盘。
+/proc/sys/run/swappiness 临时修改swappiness值
+/etc/stsctl.conf 增加vm.swappiness=100永久修改 sysctl -p使修改生效
+
