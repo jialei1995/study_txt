@@ -284,7 +284,7 @@ io：
 				exit：退出当前进程-->底层调的_exit()
 				pthread_exit():退出当前进程
 				线程退出是值是（void*）的类型
-		如何避免僵尸线程：
+		如何避免僵尸线程：（僵尸进程是杀不死的，kill不掉）
 			pthread_join
 			pthread_detach
 			pthread_create之前先设置线程的分离属性
@@ -675,6 +675,7 @@ SYSTEM-V IPC 通讯机制：
 						0806								回传一个arp应答帧传回mac
 	查看服务器网络状态
 	命令：netstat -apn |grep 端口号/程序名		 查看状态
+		  lsof -i:port号  查看是否开启成功
 	
 	客户端与服务器连接过程用的都是同一个端口。都是服务器的端口，才能通信。
 	//端口复用函数，放在bind之前 不然./server运行后退出再运行会出错，等会才能运行
@@ -2261,7 +2262,8 @@ spi:时钟是主机产生的，每个spi周期传输1bit数据
 	基本没有soc自带网络功能，一般都没有网络功能。都有uart。spi。iic
 		用的DM9000，网络有专门的芯片，可以通过驱动网络芯片实现soc与dm9000通讯就好
 	块设备是有文件系统的，fd = open（块），读写操作进行访问、写入
-	inode：						xxx
+	inode：	
+		存储文件的元信息(+各个数据块的地址)--真正访问的时候会根据元信息将这些数据块拼接到一起
 		创建设备文件：mknod /dev/hello c 249 123 观察inode使用情况
 		普通文件：touch 1 2 3 观察inode数量
 		硬盘容量很大只占用20%但是写不了文件？？？因为inode用满了
@@ -2279,6 +2281,7 @@ spi:时钟是主机产生的，每个spi周期传输1bit数据
 	命令都是32位的，驱动中的命令都是32位的。
 	struct file与之前学的FILE *f 完全不是1个东西
 	df-f  :查看inode使用情况
+	df -haT:显示文件系统与类型
 		register_chrdev_region：  静态插入自己定义MKDEV的设备号
 		alloc_chrdev_region(&devno, mi,count,"hello"); 动态插入动态申请的设备号
 	inode结构体{
@@ -3360,6 +3363,11 @@ io：
 	 	TTY:?   说明它不属于某个终端 
 	 	tty：当前进程的控制终端
 	 	自己是自己进程组组长，会话组组长
+		/dev/ttyS0或AMA0----console界面
+		/dev/tty--当前界面
+		dev/tty1---vnc界面
+		/dev/pts/0-1-2-3 ---不同的ssh界面(可根据最后的ip判断从哪里ssh登录的)
+		c编程open这些设备，write数据就会直接显示到界面会话中
 
 
  	进程组的概念：只有父进程的进程组是自己，子进程的进程组是父进程。
@@ -3552,6 +3560,7 @@ int main()
 		你有问题问我吗？研发周期，几天给面试答复。
 
 ****************************shell**********************************************
+ctrl+r:输入最近输过的linux指令，os会默认匹配之前使用过的cmd，直接回车即可执行
 在test.sh中用source 1.sh调用1.sh脚本，则1.sh脚本中的$0就是test.sh
 			source不新建bash，继承之前的环境变量，修改这种变量也会修改父进程的变量
 在test.sh中用sh 1.sh调用1.sh脚本，则1.sh中的$0就是1.sh****
@@ -3933,8 +3942,10 @@ id     查看useid、groupid
 
 hostname -f 查看主机名
 hostnamectl set-hostname  jl：更改主机名为jl，reboot生效
-uptime:查看开机到现在持续了多久，单位是hour+min
-计算机挂起相当于睡眠并不是关机，就是暂时不用用的时候很快连上就能用
+----------
+w:查看负载均衡
+uptime:查看开机到现在持续了多久，单位是hour+min，也可以看负载均衡
+
 netstat -tnlp 查看网络状态
 	-t 只列出tcp协议的链接（protocol）
 	-n 将ip地址从字母组合转化为ip点分十进制，将协议转化为端口号（不加-n可以看一下再+-n去对比）
@@ -3964,7 +3975,7 @@ httpd 监听80端口
 
 iptables == firewalls  防火墙   看下哪些端口是启用的
 
-检测linux的22号端口是否启动，可以通过（windows） telnet ip  22
+检测linux的22号端口是否启动，可以通过（windows） telnet ip  22(类似ssh的远程登录命令)
 
 netstat -anp  查看有哪些外部登录
    
@@ -4686,6 +4697,8 @@ todo要逐个评估
 
 https://github.com/jialei-github/Vundle.vim.git  vim配置
 find  . -name \*.py -print | xargs ptags.py
+find . -type f -exec ls -l {}\;
+find . -type f -exec mv {} {}.bak \;
 比如在.vimrc 中添加：
 set tags+=tags
 
@@ -4712,7 +4725,9 @@ class myclass：
 
 对象函数：self指向调用此函数的对象
 类函数：声明之前@classmethod  如果调用者是类，则cls指向类，如果是对象，则cls指向对象
+def fun(cls):
 静态函数：声明之前@staticmethod  无类似self，cls的隐形参数
+def fun():
 
 __init__(self,xx,xx) 构造函数
 __del__():析构函数
@@ -4737,6 +4752,7 @@ virsh reboot/shutdown virtname
 热迁移：就是将HOST1中的virtA在运行状态迁移到HOST2上去运行
       本质就是将virtA所在的目录在HOST1与HOST2中共享。共享目录必须包含此虚拟机的磁盘，镜像，iso，不然迁移不过去，HOST2看不到磁盘，iso的位置了就
 xml文件中屏蔽:<!-- xxxxxxx -->   z中间内容被屏蔽
+virsh domiflist virtname:查看虚拟机的mac，网桥
 
 try:xxx
 except:异常执行这部分
@@ -4791,7 +4807,8 @@ du -sh .
 df -i 查看磁盘的inode使用情况，inode用完的话就不可以再创建文件了
 
 
-lsscsi：查看bus总线是scsi的磁盘信息
+lsscsi：查看挂载到不同scsi控制器的磁盘信息(1个SCSI控制器上可以挂多个磁盘)
+lspci：查看pci总线上的控制器（SCSI控制器就会挂载PCI总线上）
 
 python：CDLL("/usr/lib/xxx")  加载动态库
 几个网卡会组成bond：增加带宽
@@ -4839,7 +4856,7 @@ eval：两次扫描之后若有cmd就执行cmd
 example：test.txt的内容为hello world
 		myfile='cat test.txt'
 echo $myfile--cat test.txt
-eval exho $myfile--hello world
+eval $myfile--hello world  eval只能扫一遍命令，这里不对。需注意**
 logger:往/var/log/message 里面写东西
 
 定时喂狗：其实就是定时往/dev/watchdog里面open->write（food） food应该有固定的格式吧
@@ -5042,6 +5059,9 @@ rc.d下有7个目录，分别放置os启动到不同启动级别对应的脚本�
 用户空间：用户进程
 内核空间：进程上下文(能到内核空间，肯定说明进程在执行syscall)--这个syscall的上文下文都是进程，只不过现在因为syscall成了内核空间
 内核空间：中断上下文，与任何进程无关。
+内核空间与用户空间区别：可执行指令与可访问的寄存器不同
+用户空间转换到内核空间的方法：syscall或硬件中断
+						因为软中断就是在内核空间触发的(往swi中写东西，用户空间根本不能访问这个reg)
 
 ---
 NFV中的vmtools的securec是编译环境中的库
@@ -5115,3 +5135,74 @@ swappiness=100：先用磁盘，这样的os速度很慢，会很卡
 /proc/sys/run/swappiness 临时修改swappiness值
 /etc/stsctl.conf 增加vm.swappiness=100永久修改 sysctl -p使修改生效
 
+-----
+ln -s 源文件 虚拟名
+ln 源文件 copy后的名字---相当于copy
+ls -l 中的数字表示连接数
+-----
+在普通用户的时候su root切不过来：
+修改/etc/pam.d/su----屏蔽第6行的wheel，表示只有属于wheel组的成员才能su root成功
+
+not in sudoers file.无法通过sudo执行命令
+修改/etc/sudoers 增加:%jl ALL=(ALL)ALL  source更新一下即可
+
+--------vmstat
+r：处于running的进程数量
+b:处于block的进程数量
+si：从swap到mem的数量
+so：从mem到swap的数量
+bi:从block到mem的数量
+bo：从mem到block的数量即磁盘
+i：进入mem的数量
+o：从mem数去的数量
+
+------却动态库导致二进制无法执行
+拷贝.so到/root/mylib目录
+添加次路径至:/etc/ld.so.conf
+ldconfig更新连接器。之后就会自动链接动态库
+
+------
+buffer:CPU要写data至block，先放至buffer，从cache中拿写的速度快
+cache：cpu读block数据，block太慢，先放至cahce
+-----1个网卡配多个ip
+cp：ifcfg-eth0为ifcfg-eth0:1  只改ip重启网卡即可
+-----硬盘的总线
+SCSI/ATA/SATA/USB/IDE(ide类排线很多，游戏卡)
+
+-------
+ntsysc:批量配置serveice的可视化工具
+splite -l 行数 file 分割后的文件命名
+splite -b xm/xk  file 分割后的文件命名
+
+------------dhclient -v eth0若dhcp分配失败，手动改网卡配置文件或搭建dhcp-server去处理
+dhcpserver搭建：
+1.下载dhcp程序，安装后/etc/dhcp/dhcpd.conf会出现
+2.修改上述配置文件：
+ddns-update-style none;不更新DNS
+ignore client-updates;不更新dhclient
+default-lease-time  xs;
+max-lease-time  xs;
+option routes 9.13.0.1;网关
+option domain-name 'dhcpserver-name';
+subnet 9.13.0.0 netmask 255.255.0.0{
+range 9.13.1.1  9.13.254.254;动态分配的ip范围
+#下面设置固定ip的时候用
+xxx{
+hardware ethernet macaddr;
+fixed-address 9.13.1.1;给固定的mac分配固定的ip
+}
+}配置完成后restart dhcpd服务，netstat -anp|grep dhcp查看67号端口开启说明服务器搭建成功。
+
+客户端：dhclient -v eth0
+正常回显：
+DHCPACK OF 本地被分配的ip from dhcpserverIP
+bond 被分配的ip
+
+--------------BMC
+重新安装os之前改成PXE，安装后自动重启时改成未配置；
+重新安装os之前还可以改成光驱，然后在界面连接光驱到win的挂载盘符
+----------------------vmtools
+及时tools被卸载，/dev/vport*还是都存在的，若没有这些vport则vmtools无法安装
+成功安装tools只会多增加一个agent通道，此通道connect才说明tools正常。
+
+--------C语言中'与”转义都得加\才可以。不然没法往双引号中间加进去。
