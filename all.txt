@@ -1554,7 +1554,7 @@ linux内核移植：
 						  3打印内核启动信息->初始化各模块->挂载根文件系统->启动第一个用户进程init
 					内核调试：printk()-->打印高于默认打印级别的信息
 					arm-none-linux-gnueabi-addr2line：很多2表示to的意思。寻找addr所在的文件行数
-					oops:pc:[<0xxxxxxxxx>].报错的时候回显示行号
+					oops:pc:[<0xxxxxxxxx>].报错的时候回显示行号---写入NULL地址数据
 			3.rootfs：自己制作或者选用别人的改改。
 
 
@@ -2394,6 +2394,7 @@ spi:时钟是主机产生的，每个spi周期传输1bit数据
     				}
 
 驱动模块的makefile：
+    #CFLAGS+=$(DEBFLAGS)----驱动里编译调试信息
     ifeq ($(KERNELRELEASE), )//注意有个“ ，”这句话是看KERNELRELEASE是否为空
 	KERNELDIR ?= /lib/modules/$(shell uname -r)/build   //选择制作ubuntu所在的makefile所在的路径
 	#KERNELDIR ?= /home/farsight/rootfs/lib/modules/3.14.0/build   //选择板子上的linux内核makefile路径
@@ -3754,6 +3755,8 @@ mount -o remount,rw /sysroot
   3. 优先级最高：/etc/systemd/system 管理员建立的执行脚本
 systemd若异常，重启使用：systemctl daemon-reexec 重启此服务
 
+mount --bind test1  test2 将test1挂载到test2，对test2的修改就是对test1的修改。
+弥补硬连接无法连接目录的问题，挂载信息存在于内存，一旦重启就找不到了。
 
 ```c
 grub2-editenv list == 列出来的就是grubenv里面的变量，可以通过grub2-set-default 去设置
@@ -3879,7 +3882,7 @@ stat穿透-跟踪软连接    --lstat不穿透----不跟踪软连接
 truncate  filename -s  3----把文件大小截断成3，文件中别的内容就不要了、
 dup：复制文件描述符，本来一个打开的文件只对应1个文件描述符。现在有两个文件描述符对应同一个文件，★但是文件指针只有一个。
 	int dup(int oldfd);  直接返回新的文件描述符（文件描述表中没被占用的最小的fd）
-    int dup2(int oldfd, int newfd); 
+    int dup2(int newfd, int oldfd); 重定向打开的oldfd的数据到打开的newfd。 inode号都是test1的号。
 
 strace ./a.out  查看a.out中有哪些系统调用（此时的a.out不用+-g参数就可以）显示的整个程序的syscall
 backtrace 看当前位置使从main几层过来的，调用栈
@@ -3895,7 +3898,9 @@ nslookup ip：找对应的网域名        前提得有DNS服务器
 nslookup www.baidu.com  根据域名找对应的ip
 
 
-
+ss -at:显示tcp连接，类似netstat
+-s 显示socket
+-p 显示应用程序与端口的对应关系
 
 access  判断文件是否存在的系统调用
 strace ./a.out  查看a.out的系统调用，可以查看各个系统调用的参数返回值，消耗的时间
@@ -4260,7 +4265,24 @@ cells= sheet('A1:B6')  范围
 cells= sheet('1:5')
 cells= sheet('A:Z')
 提取单元格中部分数据：=MID(A1,左面空几个，从这里开始数几个字符)
-
+--------生成器
+1.
+def fab(max):
+	n,a,b=0,0,1
+	while(n<max):
+		yiled b
+		a,b=b,a+b
+		n=n+1
+for i in fab(5):
+	print(i)
+2.
+list=[x+x for i in range(10)]:生成列表表达式
+生成器：返回迭代器的函数。
+generator=(x+x for i in range(10)):生成器表达式。
+（1）：next(generator)
+	   next(generator)  不断调用，每次返回下个值。（这种方法基本不用）
+（2）：for i in generator:  遍历生成器每个数据
+	       print i
 ```
 
 ```c
@@ -4677,7 +4699,8 @@ mount：显示挂载的fs的信息
 mod：显示或加载内核模块
 
 调试流程：
-mod -S /path/xx.ko自己编写的模块的路径   导入模块的符号表(函数名字与变量)
+mod -S 导入默认路径的字符信息
+mod -S /path/xx.ko自己编写的模块的路径   导入自己编译的模块的符号表(函数名字与变量)
 bt：查看调用栈
 	[exception RIP:funname+12]:宕机的函数-->附带宕机时各个reg的值
 dis -r/l funmane+12   反汇编查看死机函数对应的汇编
@@ -4712,10 +4735,10 @@ B->ping a的ip                       上面的a的界面收到消息，不阻塞
 某台CNA过载(虚拟机太多了)则这些虚拟机上的服务就会很卡，客户体验不好
 或发生故障，
 则可以将部分虚拟机迁移到另一台CNA上
-
-公有云：自己公司租的云上的虚拟机
-私有云：自己公司的机器
-混合云：上面的混合
+华为云：
+公有云：huawei cloud
+私有云：原来叫fusion cloud，后来叫hcs(华为云stack)。软硬件都搭建在客户机房，客户自己管理。-fs。manage one运营管理
+混合云：华为云stack online--硬件软件都搭建在客户机房，但是拉根线由华为管理运维
 
 
 fusion computer:融合计算
@@ -4900,13 +4923,15 @@ send xxx
 expect eof   结束程序，退回至原来的机器上
 程序的执行：expect ssh.exp 里面不能写注释，这个不是shell脚本，是exp脚本，#不是注释符
 
-
-lspci:域+总线号+设备号+功能号(一台计算机默认0号域) 01：00.0
+lspci -t：树状显示
+lspci:域:总线号:设备号.功能号(一台计算机默认0号域) 01：00.0
+00.00.0：这种不是具体的设备，而是主桥
 可在/sys/bus/driver/找类似01:00.0的目录里面的resource目录就显示了映射的物理地址
 lspci -vv -s 00:01.0查看此设备的相关信息，最下方是它的驱动名字(os中用的那个驱动)
 /proc/iomem:看pci设备与物理地址的映射关系
 40000000-4000003ff   0000：00：1f.0(最多256个总线-每个总线上最多32个设备-每个设备最多8个功能)
 0域的0号总线的1f设备的0号功能在内存中占的1M内存
+有的设备有多个功能号，因为此pci设备多功能，集成到一个设备上而已
 
 多个网卡bond后增加带宽，吞吐量。绑定后这几个网卡的mac地址就成一样的了
 cat /proc/ney/bording/bondname  查看对应的bond信息
@@ -4942,11 +4967,16 @@ journalctl /usr/bin/bash  查看某个脚本的日志
 journalctl /usr/lib/systemd/system/xx.service  查看自己写的服务的日志
 journalctl -k 只查看内核的日志 -最后一次开机直到现在的日志
 journalctl -f xxx 动态的显示更新日志(类似tail -f)
+journalctlM -rb -1:最后一次关闭os之前的日志
 往journalctl中打印日志：
 1.syslog("LOG_NOTICE","XXX")--->
 2.在systemd服务中调用printf接口，并设置journalctl的打印级别为INFO级别
 3.echo "<5>hello world" 子串开头是<x>，jounalctl会检测并将此信息打印到日志中
 
+/etc/systemd/system.conf
+1、DefaultStartTimeout:90s  默认开机等待时间
+2、DefaultStopTimeout：90s  默认关机等待时间，优雅等待，进程不会直接kill，而是发sigterm，90s内未关机发kill杀死关不掉的进程去关机
+3、ShutDownWatchdogSec:10min  开门狗复位
 
 -----------------------------------------------
 int data[10]
@@ -5166,10 +5196,11 @@ g_io_channel_read_chars(channel_buf,xx,yy);可见实际就是将fd转换成chann
 channel：集成pipes,socket,普通文件的打开 的任意一种的fd至主事件循环---可以处理指定事件
 
 ----国产CPU厂商
-x86：AMD/Intel、上海兆芯、中科院海光
-ARM：华为鲲鹏、天津飞腾
+x86：AMD/Intel、上海兆芯、中科院海光；AMD,INTEL,X86_64又叫amd64，因为64bit的x86是amd先搞出来的
+ARM：华为鲲鹏、天津飞腾；arm
 MIPS：中科院龙芯-性能较低，市场不好
 alpha：申威，性能高、单处理器达260核心
+powerpc：老苹果
 -----
 c在while中定义的变量出了while无法访问
 python在while中定义的变量出了while还可以访问。
@@ -5319,4 +5350,15 @@ nc -l 9999 < 1.file  将1.file内容放到server，连上的client会收到此�
 nc 1.1.1.1 9999 > 2.file  client连上后输入的内容被server重定向到2.file中去
 server(2.2.2.2): nc -l 9999   开放2.2.2.2的9999端口作为服务器
 client: nc 2.2.2.2 9999 客户端连上server的9999端口
+
+fork();
+if(pid==0)
+{
+	这里是子进程;
+	exit();  ---这里最好有exit
+}else if(pid>0)---这里必须有判断pid大于0的判断，不然即使pid=0，程序还会走到下面。
+{
+	这是父进程;	
+}
+
 

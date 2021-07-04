@@ -22,5 +22,13 @@ specifier  解释符，说明符
 inconsistent 不一致的
 consistent  一致的
 deprecate  弃用
+inspect  检查
+rotate  旋转
+squid  鱿鱼
+out of bound 越界
+leverage  杠杆
+disclosure  泄露
+leaks  泄露
+suppress 压制
 ```
 
