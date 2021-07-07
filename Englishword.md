@@ -30,5 +30,9 @@ leverage  杠杆
 disclosure  泄露
 leaks  泄露
 suppress 压制
+recurse 递归
+purge  清除
+legacy 遗产
+region 区域
 ```
 

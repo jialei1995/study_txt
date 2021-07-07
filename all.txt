@@ -15,8 +15,10 @@
 			  用例查询开机失败：通过pty的方式查询，通过vmtools状态查询。
 			  
 
-	PCI总线：外设部件互联总线（显卡，网卡），pci主要链接显卡网卡
-
+	PCI总线：外设部件互联总线（显卡，网卡），pci主要链接显卡网卡。PCI中线：连接CPU与树状的pci设备
+	内核启动时，通过pcibus之前的关系枚举pci_dev，为每个pci设备创建pcidev结构体，注册到pci树中。
+	内核启动时，通过虚拟总线之前的关系枚举cdev，为每个pci设备创建cdev结构体，注册到设备树内核中。
+	
 	useradd jl;增加用户
 	userdel jl；删除用户  之后还要rm /home/jl
 	userdel -r jl:彻底删除用户。
@@ -748,7 +750,7 @@ epoll与select的区别与联系：select原理概述
 		select的底层其实是内核再做的，内核查看一遍你的监听集合，如果有事件发生会返回ret。On时间复杂度
 	epoll_wait 的返回值都是可读事件，遍历i=0;i<ret;i++这么遍历就可以				  O1时间复杂度
 调用select时，会发生以下事情：
-
+回调函数属于进程本身，不是一个新的进程。
 从用户空间拷贝fd_set到内核空间；
 注册回调函数__pollwait；
 遍历所有fd，对全部指定设备做一次poll（这里的poll是一个文件操作，它有两个参数，一个是文件fd本身，一个是当设备尚未就绪时调用的回调函数__pollwait，这个函数把设备自己特有的等待队列传给内核，让内核把当前的进程挂载到其中）；
@@ -2283,7 +2285,13 @@ spi:时钟是主机产生的，每个spi周期传输1bit数据
 	驱动中的设备号与应用程序中的要一致。
 	写应用程序之前要申请设备号，应用程序操作此设备号。（是mknode申请的吗？）
 	命令都是32位的，驱动中的命令都是32位的。
-	struct file与之前学的FILE *f 完全不是1个东西
+	struct file与之前学的FILE *f 完全不是1个东西;struct file描述一个已经open的文件，一旦文件被open，就会产生一个file结构体去描述他，
+特点：打开文件时就会被创建，close时就会被删除，这个结构体可以传递给每个对该文件进行操作的函数做入参。
+重要成员：mode_t mode;打开时是可读？可写？可读可写？
+		  loft_t ops; 当前文件指针的位置
+		  flags 对应上面的mode
+	进程中open一个文件，实际内存中就会建立一个file，这个结构体与task_struct联系起来，把vfs中定义的接口结合起来供上层调用。
+		  
 	df-f  :查看inode使用情况
 	df -haT:显示文件系统与类型
 		register_chrdev_region：  静态插入自己定义MKDEV的设备号
@@ -3183,6 +3191,7 @@ signal(int type,void(*pFun)(int arg))-----
 void (*)signal(int type,void(*pFun)(int arg))(int);
 void (*signal(int type,void(*pFun)(int arg)))(int);  signal返回函数指针，不是返回一般的char*指针（看着就很麻烦，所以要typedef）
 
+typedef struct A A;则struct A==A;  A直接就是个数据类型，可以--A var，去定义变量。
 
 typedef void (int,int) ABC;
 typedef void ABC（int,int）;       
@@ -3462,6 +3471,9 @@ c++：
 	内联函数。减少栈的使用。代码量，函数在调用处被展开。逻辑简单编译时展开
 
 	宏预编译时展开，简单的文本替换
+	为什么要用do-while(0)将函数宏包围起来？
+	#define foo(x) {bar(x);bar(z)}
+	if(1) foo(x);else bin(x)---->展开if(1) {bar(x);bar(z)}; else bin(x)  直接语法错误。
 
 	struct与class
 	static成员变量的使用，必须是public，不然外面调用不到了
@@ -3897,6 +3909,10 @@ dlopen:man一下
 nslookup ip：找对应的网域名        前提得有DNS服务器
 nslookup www.baidu.com  根据域名找对应的ip
 
+dmsetup ls:查看当前device mapper信息
+dmsetup info：详细信息
+dmsetup deps：依赖关系
+dmsetup table：表
 
 ss -at:显示tcp连接，类似netstat
 -s 显示socket
@@ -4240,7 +4256,7 @@ data.astype(int)  data中每个数据都转化为int类型
 切片是一段连续的数字才可以切片，切下来的数字是连续的
 
 
------ zip压缩
+----- zip压缩 zip -r xx.zip ./*
 解压缩：
 with zipfile.ZipFile(xx.zip，‘r’) as zp:
     zp.extrat('1.txt')   将压缩中的1.txt取出来
@@ -4899,8 +4915,18 @@ python：CDLL("/usr/lib/xxx")  加载动态库
 安装bonding模块，修改bond的配置文件后才能bond网卡：ifenslave bond0 eth0 eth1
 bond模式：0->两个网卡交替收发数据，速度快，一个坏了另一个也能用
 		1->收发数据只通过一个网卡，另一个备用着。
-配置文件：/proc/net/bonding/bond0
-
+配置文件：/proc/net/bonding/bondname  查看bondname的信息状态
+	1.modprobe bonding
+	2.echo +bondname > /sys/class/net/bonding_master  增加bond名字到sys中
+	3.ethtool -K bondname lro off 
+	4.ifdown bondname
+	5.echo bondtype(1) > /sys/class/net/bondname/bonding/type
+	6.echo 100 > /sys/class/net/bondname/bonding/xmint_hash_policy
+	7.查看要加入bond的网卡是否能用，正常
+	8.ifdown所有要加入bond的网卡
+	9.echo +ethx/y/z /sys/class/net/bondname/bonding/slaves
+	10.ethtool -K ethx/y/z lro off 
+	ok了，看下配置文件查看bond状态。
 expect：需要安装
 脚本第一行：#/bin/expect
 set timeout 30(-1为永不超时)
@@ -5227,6 +5253,9 @@ os中的systemctl status network状态是fail不是说内部网络不正常，10
 
 ----
 dpkg -S file：查看文件对应的deb软件包
+dpkg -l ：列出所以已安装的deb包
+dpkg -r/-P:删除包remove,purge
+
 swap 空间是磁盘空间，不是硬件的内存，这种磁盘可以当做内存用
 swappiness=0：先用物理mem，然后再用swap的mwm
 swappiness=100：先用磁盘，这样的os速度很慢，会很卡
@@ -5361,4 +5390,5 @@ if(pid==0)
 	这是父进程;	
 }
 
+/sys目录中的内容只能看，不能用rm删除，这是驱动、内核中创建出来的，需要驱动内核中去删除用代码删除
 
