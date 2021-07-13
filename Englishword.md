@@ -1,5 +1,5 @@
 # 英语单词
-
+优点，每天积累一点点，记到笔记本上，过阵子复习一次，慢慢记住。
 ```python
 institution  学会，集体
 electronic   电子
@@ -34,5 +34,10 @@ recurse 递归
 purge  清除
 legacy 遗产
 region 区域
+duplex 双工
+negotiations 协商
+potential 潜在的
+misc  杂项，大杂烩，未分类的文件
+taints  污染
 ```
 

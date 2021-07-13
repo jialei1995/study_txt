@@ -14,7 +14,8 @@
 			  网卡数量太多，导致查询带内信息失败。网卡缓冲区不够。
 			  用例查询开机失败：通过pty的方式查询，通过vmtools状态查询。
 			  
-
+	带内信息：通过程序接口获取的信息
+	带外信息：通过其他方式获取的信息
 	PCI总线：外设部件互联总线（显卡，网卡），pci主要链接显卡网卡。PCI中线：连接CPU与树状的pci设备
 	内核启动时，通过pcibus之前的关系枚举pci_dev，为每个pci设备创建pcidev结构体，注册到pci树中。
 	内核启动时，通过虚拟总线之前的关系枚举cdev，为每个pci设备创建cdev结构体，注册到设备树内核中。
@@ -1235,7 +1236,8 @@ C++:c++98||c++11 ||c++14
 		如果直接在本文件全局变量int a，别的文件又全局变量定义int a；就重定义了，还会报错。。可以函数内定义局部的
 		extern int a = 10；错，变量的重定义
 		全局变量只要能访问就能修改，所以比较危险。可以定义的时候不初始化，用的时候在函数内部初始化也行。
-			
+		不应该在.c中用extern直接声明，最好的方式是：
+		1.c中定义  某个.h中extern声明，其他c文件直接include 1.h文件，这样全局变量就能直接使用了。
 	
 	全局变量存储在堆上。heap	
 		
@@ -1909,9 +1911,11 @@ Connection closed by foreign host.
 	普通软件的安装:./config + make + make install
 	类型为M的驱动：make modules + make install
 
-	内核目录执行：make modules  啥意思：往板子的rfs目录放个含linux的makefile的modules文件夹。
+	内核目录执行：make modules  编译出来很多ko。
+	
 				make modules_install INSTALL_MOD_PATH= ~/rootfs	将模块安装到rootfs中  
-					则   ~/rootfs/lib/ 下多了1个modules文件夹
+					则   ~/rootfs/lib/ 下多了1个/lib/modules文件夹
+				
 
 		直接写模块入口函数：int init_module(void)		    这么写就不需要写module_init了
 				出口函数：void cleanup_module(void)		这么写就不需要写module_exit了
@@ -2006,8 +2010,8 @@ Connection closed by foreign host.
 			}
 			
 			MKDEV(major，minor)；根据主次设备号生成设备号
-			MAJOR（设备号）；提取主设备号 --高12bit 
-			MINOR（设备号），提取次设备号 --低20bit
+			MAJOR（设备号）；提取主设备号 --高12bit    区分哪类驱动（串口）
+			MINOR（设备号），提取次设备号 --低20bit    区分具体哪个驱动设备（串口1，2，3）
 
 	写设备驱动程序首先要申请设备号，----这是注册设备号呢-------设备号注册之后才可以制作设备文件（根据设备号）
 											之后操作设备都依靠的是设备文件
@@ -3174,8 +3178,7 @@ printf("%s",arr);
 return 0;        程序结束的时候会回收资源，发现越界
 }
 
-栈爆掉了？？
-局部变量不要写太大。
+
 int main()
 {
 	int arr[100000000];  消耗的是栈空间   
@@ -3215,25 +3218,6 @@ int main ()
 }
 *********************************************************
 
-系统移植uboot指令：md----------------memory display
-
-#define API() printf("%s %s %d",__FILE__,__FUNCTION__,__LINE__)
-
-*****
-char *getstr()
-{
-	char * tmp = "123"; 程序结束才会释放“123”
-	return tmp;  返回常量区的地址，常量区不会释放
-}
-可以得到“123”的地址。
-
-char *getstr()
-{
-	char p[] = "123";   函数分配空间，函数结束空间释放
-	return p;			局部变量地址，不可以返回。
-}
-**************
-
 那么要是想让 程序 跳转到 绝对地址是 0x100000 去执行
     #include <stdio.h>
     typedef  void (*ABC)();   函数类型指针
@@ -3249,7 +3233,7 @@ char *getstr()
         return 0;
     }
 
-**********************8结构体定义同时赋值
+**********************结构体定义同时赋值
 struct file_operaters var = { 部分初始化
 	.name = asdsa,
 	.age = 12,
@@ -3495,7 +3479,7 @@ c++：
 	static int a；定义在函数a中，只属于函数a。定义在函数b中只属于函数b
 
 	const：
-	1.局部变量：
+	1.局部变量：未初始化，值是随机的。全局变量与静态变量未初始化，编译器自动将它初始化为0.
   1）内存中的位置：静态存储区
 
   2）初始化：未经初始化的全局静态变量会被程序自动初始化为0（自动对象的值是任意的，除非他被显示初始化）
@@ -3974,6 +3958,10 @@ id     查看useid、groupid
 
 hostname -f 查看主机名
 hostnamectl set-hostname  jl：更改主机名为jl，reboot生效
+
+sync：强制把当前内存中的数据写到磁盘。
+普通cp一个大文件到某个目录时，命令执行完可能并没有cpy完，然后os会慢慢将当前内存的数据往磁盘中写，若此时断电，大部分数据丢失。
+此时应该执行sync，强制刷新mem中的数据到磁盘。
 ----------
 w:查看负载均衡
 uptime:查看开机到现在持续了多久，单位是hour+min，也可以看负载均衡
@@ -4918,7 +4906,7 @@ bond模式：0->两个网卡交替收发数据，速度快，一个坏了另一�
 配置文件：/proc/net/bonding/bondname  查看bondname的信息状态
 	1.modprobe bonding
 	2.echo +bondname > /sys/class/net/bonding_master  增加bond名字到sys中
-	3.ethtool -K bondname lro off 
+	3.ethtool -K bondname lro off (large-receive-offload)将接收的多个tcp包聚合成一个大包，然后传给net协议栈，减少协议栈处理次数增加处理能力
 	4.ifdown bondname
 	5.echo bondtype(1) > /sys/class/net/bondname/bonding/type
 	6.echo 100 > /sys/class/net/bondname/bonding/xmint_hash_policy
@@ -5180,6 +5168,14 @@ rc.d下有7个目录，分别放置os启动到不同启动级别对应的脚本�
 内核空间与用户空间区别：可执行指令与可访问的寄存器不同
 用户空间转换到内核空间的方法：syscall或硬件中断
 						因为软中断就是在内核空间触发的(往swi中写东西，用户空间根本不能访问这个reg)
+						切换时需要用栈保护现场
+glibc 提供的各种syscall比较通用。
+
+syscall怎么执行的？
+read/write/open----》通过swi/svc指令软中断跳到对应的sys_read/sys_write/sys_open
+如何分别打开的是哪种文件呢？
+对于普通文件f:存在于block，需要分辨文件类型是vfat，ext2,ext3类型，然后访问块设备驱动（这种的比较繁琐）
+对于c文件：根据主设备号找驱动类，根据次设备号找具体的硬件驱动
 
 ---
 NFV中的vmtools的securec是编译环境中的库
@@ -5199,12 +5195,14 @@ VNC的连接断开在/libvirt/qemu/xx.log中都能看到。若VNC界面乱码，
 
 -----分析io性能
 iostat -d -k 1 10：-d表示device  -k表示单位是千  
-
+iostat -d -m -x 看util值高说明io卡，原因：文件句柄死锁，驱动问题，cache写之前判断有，写的时候cache被释放了。
+iostat -d -m -x 看util值高说明io卡，原因：文件句柄死锁，驱动问题，cache写之前判断有，写的时候cache被释放了。
 ----KVM
 1.就是个kvm.ko，安装后呈现/dev/kvm
 2。用户访问ioctl /dev/kvm
 3. guest为进程，vcpu为线程
-4. 仅支持全虚拟化
+4. 
+
 ---xen
 1. 执行运行于硬件之上
 2. 支持全虚拟化+半虚拟化
@@ -5391,4 +5389,20 @@ if(pid==0)
 }
 
 /sys目录中的内容只能看，不能用rm删除，这是驱动、内核中创建出来的，需要驱动内核中去删除用代码删除
+内核文件系统，得通过驱动程序去增删此目录中的文件，开机自动挂载；挂载命令：
+mount -t sysfs none /mnt；因为无具体的分区。
 
+头文件应当自包含：
+1.c中include stdint.h
+1.h中没有包含，但是函数传参中有unit32数据类型
+所以需要包含1.h的c文件必须自己包含stdint，这样不好
+应该在1.h中自己include stdint头文件，这样需要使用1.h的c文件直接包含1.h就好
+
+ASCII：128个 ANSI:包含ascii 
+编码时一个0x34对应汉语：中；对应台湾字：蔠  这种不是一对一
+对于unicode编码方式是一对一的，有100万个字符，地球的文字都可以覆盖
+不同的编码方式在文件开头就定下来了：0xabcd 就规定了后面是怎么翻译的
+unicode LE：小端
+unicode BE：大端-->容错低，一旦丢失一个字节，整个文件乱码
+UTF8：无头部 ---->容错高，丢失字节只会让一个字符乱码，不影响其他
+UTF8-BOM：有头部
