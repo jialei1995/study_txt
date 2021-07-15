@@ -1003,6 +1003,8 @@ c阶段：
 		(*(volatile unsigned int*)0x11000c40)地址里的值是volatile的
 							提示编译器对象的值可能在编译器未监测到的情况下改
 
+		cpu的7种模式：user,sys,und(未定义指令)，svc（管理模式），abt（abort指令预取终止或数据访问终止），irq,fiq 
+		每种模式有专用的reg，不同模式可访问的reg不一样
 **************************************************【C++】*************************************************************		
 C++:c++98||c++11 ||c++14
 	用途：
@@ -1240,6 +1242,7 @@ C++:c++98||c++11 ||c++14
 		1.c中定义  某个.h中extern声明，其他c文件直接include 1.h文件，这样全局变量就能直接使用了。
 	
 	全局变量存储在堆上。heap	
+	全局变量不能这样初始化：int c=a+b;不是确定的数就不可以；因为全局变量不能在编译时确定，声明时就得确定下来。
 		
 	继承：
 		class 子类 ：继承方式public 父类
@@ -1908,12 +1911,7 @@ Connection closed by foreign host.
 	qt中函数alt+enter自动补全
 
 **************************************驱动开发******************************************
-	普通软件的安装:./config + make + make install
-	类型为M的驱动：make modules + make install
-
-	内核目录执行：make modules  编译出来很多ko。
-	
-				make modules_install INSTALL_MOD_PATH= ~/rootfs	将模块安装到rootfs中  
+	    make modules_install INSTALL_MOD_PATH= ~/rootfs	将模块安装到rootfs中  
 					则   ~/rootfs/lib/ 下多了1个/lib/modules文件夹
 				
 
@@ -2072,6 +2070,15 @@ Connection closed by foreign host.
 		
 		make menuconfig:遍历显示所有目录下的kconfig。每个配置项都对应kconfig中的一个文件
 		menuconfig中的一行在kconfig中有5、6行对它的描述
+		
+		驱动的升级过程：
+		1.直接将硬件地址写到驱动中，将这些硬件地址ioremap为虚拟地址然后实行硬件操作---不便扩展但是很方便简单
+		2.将硬件资源放到一个struct中去维护，操作的时候还是同样的方法
+		3.每个硬件对应一个platform_driver驱动（多个硬件与多个驱动怎么联系呢）
+		4.引入总线，硬件的修改不会影响驱动，驱动的修改不会影响硬件------------导致有很多平台设备要去维护
+		5.引入设备树，平台设备中扫描到资源，通过总线与驱动连接起来
+		platform_bus_type：一边是dev列表，一边是dro列表，中间通过总线自动联系起来
+		联系方法：1.根据驱动侧的idtable 2.通过name
 
 *************************************阻塞底层实现*******************************
 	read write阻塞的底层靠

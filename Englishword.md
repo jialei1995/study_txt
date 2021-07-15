@@ -39,5 +39,7 @@ negotiations 协商
 potential 潜在的
 misc  杂项，大杂烩，未分类的文件
 taints  污染
+abbreviation 缩写
+degradation  降解
 ```
 
