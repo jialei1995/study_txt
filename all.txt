@@ -724,8 +724,18 @@ SYSTEM-V IPC 通讯机制：
 	并发实现：1多线程2多进程3io多路复用都能实现。
 		python中的多线程、多进程使用方式一样，Process、、Thread传参方式也一样，只不过一次是在一个进程内处理，一个是多个进程
 	多进程并发（多线程并发服务器）注意：只是服务器 它可以1对多
+	python进程间通信：Pipe或者Queue模块
+	Pipe用于父子进程间通信，是2个进程间通信
+	Queue模块可以用于多个进程间,get与put方法去读写数据。
+	python共享变量（进程间）：
+	var=multiprocessing.Value('i',0)
+	lock=multiprocessing.RLock()  创建全局锁
+	进入子进程回调函数后：
+	lock.acquire()：先去获得锁
+	lock.release();中间操作完之后去释放锁。
 	
-	
+	若每个线程中执行的操作时间很短，不必使用多线程，因为创建进程销毁进程也要消耗资源的。
+	多进程往往用来处理CPU密集型操作，多线程处理IO密集型操作。
 1.客户端连接 2.数据通信
 	select多路io转接：  借助内核监听（本来是服务器自己监听连接：accept阻塞）
 	int select(int nfds, fd_set *readfds, fd_set *writefds,fd_set *exceptfds, struct timeval *timeout);
@@ -1766,6 +1776,12 @@ linux内核移植：
 		目标：依赖
 			sh xx.sh    这里其实可以执当前目录的的shell脚本（用sh去运行此脚本）
 		默认执行make命令其实是make的makefile中的第一个目标
+		
+		顶层make -C xxx -DMACRON 定义的宏会传到底层的任意makefile中去。
+		顶层makefile中定义的变量若底层不做修改，保持原值，底层可以增加例如：
+		CFLAGS+=-s -ftrapv -g等等。
+		
+		#program comment  编译期间可以打印调试信息。
 *************************************************************************************		
 QT:
 	Qwidget:是其他两个的父类，最简单的空窗口，他的父类是所有对象的祖宗QOBJECT.
@@ -2593,6 +2609,21 @@ int remap_pfn_range(struct vm_area_struct *vma, unsigned long addr,
 		【】用device+drive写驱动时，match通过platform_driver.name与platform_device.name匹配
 		【】用设备树时，驱动的匹配通过，platform_driver.of_match_table  描述驱动支持的设备树里的某一个设备
 	***一个设备节点可以包含整个板子的所有寄存器，不用建立很多节点
+	
+	dts语法：
+		#address-cells 表示address要用几个32bit的数值去表示（32-64bit的CPU此值不同）
+		#size-cells  要用几个32bit的数值去表示大小
+		node的lable若存在，需要更改此node的属性，可以直接：
+		&lable{
+			var='value';
+			status='enable'/'disable';可以使能或禁掉某个节点
+			compatible='A','B','C';此设备兼容A,B,C3种驱动，优先级A,B,C
+		}
+		若lable不存在，需要更改此node的属性，可以直接：
+		&[/uart@0x1234]{
+			var='value';
+		}
+	
 	int HelloDriverProbe(struct platform_device *pDevice)
 	{
 		hello_init(pDevice);平台驱动的探测函数里面会把平台设备的结构体带过来struct platform_device *pdevic
@@ -2659,6 +2690,7 @@ int remap_pfn_range(struct vm_area_struct *vma, unsigned long addr,
 	对共享资源枷锁，保护共享资源（注意只是在全局变量操作前后加解锁，不能中间隔得太远，不然别的程序获取不了锁，会卡死）
 	运用于内核进程间，只能被一个内核任务（进程或中断）持有，抢锁抢不到CPU会忙轮询，旋转，所以一般尽量少用。
 	自旋锁怎么保证临界区资源，有可能持有锁的时候被中断掉，还是可能破坏临界区，所以衍生出别的函数：
+	
 	spin_lock_irqsave(获得锁之前禁止cpu中断，将中断状态保存在flag参数中)
 	spin_lock_irq（获得锁之前禁止cpu中断，但不保存中断状态）
 	spin_lock_bh（禁止硬件中断，允许软中断）
@@ -2666,6 +2698,9 @@ int remap_pfn_range(struct vm_area_struct *vma, unsigned long addr,
 		spin_unlock();解锁
 		down(&sem);内核的信号量
 		up(&sem);
+	内核的进程与进程之间用信号量去通信（信号量可以有多个），若初始化为1个就成了互斥信号量
+	进程与其他内核代码或者中断中保护临界区时使用：自旋锁
+	
 ****如果只用1个全局变量，不用锁，open一个文件后，还来不及修改全局变量，另一个进程也可以打开这个文件，这样就会有问题了
 	$:gnome-system-monitor---任务管理器
 	信号量要点：在驱动中全局变量定义：struct semaphore mysem;
@@ -4310,6 +4345,8 @@ Execstart = /usr/lib/systemd/system/test.sh
 multi-user.target wants 谁，谁就会被放到/usr/lib/systemd/system/multi-user.target/
     目录中，只要到了这个目录中，必定会开机启动，才能启动到这一级别。
 
+设置服务开机自启动：
+将服务脚本直接放到/etc/rc.d/init.d中，设置enable此服务即可（对于setnetwork需要将之前的NetworkManager禁掉）
 ```
 
 ------
@@ -4472,7 +4509,7 @@ watch：gdb调试的时监控某个变量    *****显示的更详细，还带的
     Old value = 104
     New value = 105
 LD_PRELOAD=/home/xxx.so   优先加载这里面的库文件，即使lib里面有，先从这里找
-ldd  /lib/xx.so   查看库文件的依赖关系
+
 更改了/usr/lib/systemd/system/xx.service 后要systemctl daemon-reload  xx.service 再重启服务
 这个service 中的Limitcore=xxx 就是限制调用栈的大小
 cat /proc/pid(进程号)/limits   看进程的调用栈限制****
@@ -4846,6 +4883,8 @@ virsh reboot/shutdown virtname
       本质就是将virtA所在的目录在HOST1与HOST2中共享。共享目录必须包含此虚拟机的磁盘，镜像，iso，不然迁移不过去，HOST2看不到磁盘，iso的位置了就
 xml文件中屏蔽:<!-- xxxxxxx -->   z中间内容被屏蔽
 virsh domiflist virtname:查看虚拟机的mac，网桥
+virsh change-media  virtname  hdb(xml中cdrom叫什么名字)  --eject   先将之前的cdrom拔出来
+virsh change-media  virtname  hdb(xml中cdrom叫什么名字) /xx.iso --insert 
 
 try:xxx
 except:异常执行这部分
@@ -4895,6 +4934,7 @@ zypper search xx:查看xx软件包是否已安装
 scp重复拷贝同一文件名到det的相同目录会覆盖之前的文件。
 
 fsck.ext4 -y /dev/mapper/root  会修复文件系统，按照ext4格式
+不用指定ext4也可以，os会自动分辨当前分区类型。
 df -h  查看磁盘空间
 du -h --max-depth=n 查看几层目录结构的文件占用
 du -h -d x 同上行
@@ -5134,9 +5174,6 @@ wait_running 检查
 -----/tmp 目录，相当于windows的回收站   10天就会自动删除
 以后别删东西，都往这里放
 
----启动界面无log信息，往cmdline参数中加console=tty0
-无法virsh console 往cmdline加console=ttyAMA0(arm)或ttyS0
-
 ----boot分区被破坏如何恢复
 现象：低版本linux黑屏，啥都看不到；高版本linux进入grub_resue>命令行
 解决办法：
@@ -5210,11 +5247,6 @@ iostat -d -m -x 看util值高说明io卡，原因：文件句柄死锁，驱动�
 3. guest为进程，vcpu为线程
 4. 
 
----xen
-1. 执行运行于硬件之上
-2. 支持全虚拟化+半虚拟化
-
-libvirt提供了virsh命令
 ---
 date -s 修改的是os时间，重启失效需要写入CMOS硬件
 clock -r /hwclock --show查看硬件时间
@@ -5413,3 +5445,11 @@ unicode LE：小端
 unicode BE：大端-->容错低，一旦丢失一个字节，整个文件乱码
 UTF8：无头部 ---->容错高，丢失字节只会让一个字符乱码，不影响其他
 UTF8-BOM：有头部
+
+8bit的锁存器：共9根线，1根enable线，8个data线。enable为1时才可以将数据写进去，enable为0时，data的电平高低不会写入。
+
+
+serial串口日志在/var/log/libvirtd/qemu/virtname.seriallog中，可以看到开机自启的log（dm-1,error）
+观察fstab中的分区是否都已经成功挂载。
+若磁盘挂载有问题，会进入紧急模式，umount有问题的挂载点，然后fsck -y /dev/mapper-root即可修复
+修复完成再次执行fsck /dev/mapper-root可以看到此分区已经clean，说明磁盘已经被修复

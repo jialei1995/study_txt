@@ -41,5 +41,9 @@ misc  杂项，大杂烩，未分类的文件
 taints  污染
 abbreviation 缩写
 degradation  降解
+territory  领土
+finite  有限的
+infinite  无限的
+recursion  递归
 ```
 
