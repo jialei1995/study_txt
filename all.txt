@@ -136,8 +136,11 @@ c++		string 不是char*传参的时候传string 并不会改变原来s的值，�
 		double stod(const strings str, size_t* pos = 0)
 		
 	
-	编译分为：预处理precompile【处理#将内容粘贴到文件中】--》编译compile【生成.s】--》汇编asseble【生成.o】
-	--》链接link【拼接多个.o生成可执行.elf此时包含调试信息（只能在linux中运行）】--》objcopy：剥离无用的调试信息生成.bin可以在板子运行
+	编译分为：预处理precompile 展开宏并且删除注释 -E
+			  编译compile【生成.s】 -S
+			  汇编asseble【生成.o】 -c
+			  链接link【拼接多个.o生成可执行.elf此时包含调试信息（只能在linux中运行）】
+			  objcopy：剥离无用的调试信息生成.bin可以在板子运行
 find：
 	find ./ -type  c/d/p/s/l/b/f  		字符设备文件，普通文件f
 	whereis + 目录名
@@ -225,8 +228,10 @@ io：
 	动态库：1：gcc -fPIC -Wall -c hello.c  (会生成忽略位置的hello.o）
 			2: gcc -shared -o libtest.so hello.o bye.o  生成库
 			优点：客户的程序不用改变，只需要改变动态库里面的实现即可，客户的程序不用重新编译，直接调用新编译的库就行了
-	库的使用：编译 gcc test.c -L. -ltest(去lib .so) 
-	两种库编译的时候都要指定库的位置。
+	
+	动态库运行时会调用库，如果库不在了，程序不能正常运行
+	动态库不方便移植，生成的代码体积小，需要下载库。
+	两种库编译的时候都要指定库的位置，编译时都要用到库，其中对于动态库，编译时只会简单引用，不会编译进目标a.out
 			动态库，执行时要用要库。
 			1>>把此库位置放入环境变量/lib和/usr/lib（系统库，用户库）的位置
 			2>>环境变量设置vim ./.bashrc    export LIBRARY_PATH=$LIBRARY_PATH:修改后重启终端才会有效。
@@ -666,8 +671,16 @@ SYSTEM-V IPC 通讯机制：
 		2层：终端->交换机
 			局域网内消息传递：通过交换机的端口映射表：port->mac（压根不需要ip层就可以通信）相当于lan口
 			局域网外：路由器中还有个路由表：可以查看要发送的信息的目的ip是否在本局域网内，如果不在，就将数据放到局域网对外接口，相当于wan口，然后数据就发出去了
-		交换机：本网段通信，基于mac地址转发数据，内部有个mac地址表。所以可以在局域网内定向传输数据，不能与互联网交换。
+		交换机：学习功能与转发功能
+			1.里面有mac地址表（又称端口mac映射表），data需要转发时会根据目的mac从对应的port发出去
+			2.内置dhcpserver，负责ip分配
+			3.mac地址表理解：数据中包含源mac，目的mac，经过交换机时，它会先给源mac建立对应的mac-port映射条目（学习功能）
+			                然后会查询目的mac，然后把数据从对应的port转发出去
+							如果目的mac在当前的mac地址表中没有，则向所有的port都转发出去（泛洪）
+							最后目的mac会打包数据（里面放的自己的mac与发给他数据的mac）发回源mac，此时交换机会将目的mac建立对应的port
+							下次别人再发此mac的数据就不需要泛洪了，直接给对应的port就可以了
 		路由器：有广域网接口，不同网段直接收据收发。本质是个gateway，只接受数据包that包含在本ip表内的ip的数据
+		
 			在传数据的-路上-经由的东西就是路由器
 		通信的时候路由器看一下数据包的ip，如果在本局域网内，就不从wan口发了，如果是别的局域网内的数据，则
 		tcp/ip 4层模型
@@ -1286,9 +1299,18 @@ C++:c++98||c++11 ||c++14
 			m_age = new int (*p.m_age);属性在堆区
 		}
 	内存分区：
-		全局区：全局变量、静态变量static、常量const修饰的、全局常量、字符串。程序结束后由操作系统释放
-				
-		代码 存放2进制机器指令、是只读的、
+		全局区：全局变量、静态变量static、常量const修饰的
+		常量区：常量、字符串。				
+		代码区：存放2进制机器指令、是只读的
+		堆栈区
+	对于进程：有4g的虚拟地址空间，这个4G怎么布局
+		1.代码段-.text 存放二进制
+		2.数据段-已经初始化的全局变量
+		3.bss段：未初始化的全局变量或静态变量
+		4.堆-匿名内存映射 栈-编译器自动分配释放
+		
+		
+	
 	引用做函数返回值：									
 	***		注意不能返回局部变量的引用。				永远存的0x11的地址  这个地址中可以放别的值
 			引用的本质就是指针常量：int * const a=&b;a的指向不能变，但是指向的内容可以变
@@ -1618,10 +1640,14 @@ linux内核移植：
 				bss：未初始化的全局var静态var
 
 		nm xxx：符号标签	显示代码与地址的对应关系表
+		nm -D a.out:显示符号表
 		strip xxx：剔除xxx中 代码与地址的对应关系表，剔除了mn 命令就查不到了
 		strings xxx：查看此二进制文件中 的字符串  就是printf对应的打印信息
 		objdump -d xxx：查看二进制文件的汇编代码与对应的地址之间的关系
+		readelf -s a.out 显示符号表，上层的printf在底层被转换成什么函数执行的
 		arm-none-linux-gnueabi-objcopy  -O binary -S led.elf led.bin 大写-O -S 格式转换
+		安全编译选项：
+			-D_FORTIFY_SOURCE:缓冲区保护，防止缓冲区溢出，对于很多函数，编译时都会变成xx_chk。可通过objdump -d看到
 	调试：
 		选择将linux的某个文件夹挂载到demo。这样就会同步demo与linux中的数据，可以通过操作linux来操作demo
 	
@@ -2601,7 +2627,7 @@ int remap_pfn_range(struct vm_area_struct *vma, unsigned long addr,
 		}
 
 	有了设备树，就不用写平台设备的代码了。&&&&&内核加启动时载的时候就将平台设备注册好了。省去了自己写平台设备代码
-
+		将dtb文件放进/boot目录重启即可加载 ，形成platform_dev结构体，drv中可以直接通过方法获取这些结构体。
 		linux-3.14/arch/arm/boot/dts  目录中的exynos4412-fs4412.dts就是设备树源代码
 		更改目录下的exynos4412-fs4412.dts，添加设备节点
 		在顶层目录linux-3.14/下执行  make dtbs生成exynos4412-fs4412.dtb  放入/var/lib/tftpd-pha/目录中（可以给这个dtb换个名字）
@@ -3385,19 +3411,14 @@ io：
 	标准io：方便移植，只要#include<stdio.h>就好了
 	文件io：是内核里面的函数，移植困难
 
-	库就是可执行的二进制代码，可被OS载入内存执行，windows与linux库不兼容
-	动态库运行时会调用库，如果库不在了，程序不能正常运行
-	动态库不方便移植，生成的代码体积小，需要下载库。
+	
 
 		1.把库拷贝到/lib  或/usr/lib就不用加-L 库位置了
 		系统会在这里自己找库
 
 		2.在.bashrc改环境变量 
 
-	 .bss + .data：静态区==全局变量+静态变量
-
 	 批处理进程：gcc arm-none-linux-gnueabi-gcc
-	 需要预处理-....
 
 	 守护进程：系统起来他就启动，系统关闭它才关闭
 	 	TTY:?   说明它不属于某个终端 
@@ -3904,12 +3925,20 @@ do
 done<1.txt	
 ```
 
-
+主机执行client-tool-linux ip#6677#cmdecho['cmd']  可以将此cmd在虚拟机中执行
 
 ### 软件包版本beta完美  alpha很多bug还在测试
 
 ## linux命令 shell命令
+hexdump 将二进制转化为ascii区看，类似vim 中:%!xxd去看
 
+
+sar：
+sar -u(cpu) -o(out) test_sar 5 3：每5s采样一次，连续采样3次，将结果以二进制形式保存到test_sar文件中
+sar -u -f test_sar 查看以上采集的sar文件，直接cat看不了
+%idle 空闲时间占用百分比。如果此值高但是os很卡说明cpu在等内存分配，应增加mem
+						  太低说明CPU处理不过来，应增加CPU
+sar -q 查看平均负载						  
 ```c
 chmod函数。chmod('filename',0777);可以在程序中更改传入的文件权限。
 chown改变文件所属用户，所属组。chown('filwname',uid,gid);所有者id，组id----/etc/passwd获得id
@@ -3928,8 +3957,12 @@ strace -e open,close ./a.out 只查看a.out中的open，close这两种syscall
 strace ./a.out   查看每个syscall花费的时间
 strace ping baidu.com   查看此过程中的syscall
 strace dmesg：查看dmesg是怎么打印到屏幕上的
-ping谁谁就会给你回消息，a->b,b->a;
+ping谁谁就会给你回消息，a->b,b->a  ICMP报文
 MTU值大小：网络包的大小。若配置发的包不允许拆包，则MTU为1500的机器不能接收数据包大于1500的包
+ping -s 大小（byte） -M do 目的ip  限制一次ping的时候发包的大小
+
+ping -s 大小 目的ip：这样ping的时候会自动把包拆开发
+
 dlopen:man一下
 
 nslookup ip：找对应的网域名        前提得有DNS服务器
@@ -3984,7 +4017,7 @@ brctl  show:查看我的网桥连接的哪些网卡  ---桥接
 
 blkid 看磁盘uuid
 
-strings  xxx.so     在库中提取字符串并打印出来
+strings  xxx.so     在库中提取字符串并打印出来，对于if，else分支的打印字符串，它只能拿到程序实际运行到的分支中的printf的字符串
 
 dd iflag=xxx oflag=yyy if=uImage of=/dev/sdb    seek=1000扇区号，将内核存储到1000扇区
 
@@ -3999,6 +4032,8 @@ list --dependencies  xx.target
 id     查看useid、groupid
 
 hostname -f 查看主机名
+hostname 查看主机名
+cat /etc/hostname  查看主机名
 hostnamectl set-hostname  jl：更改主机名为jl，reboot生效
 
 sync：强制把当前内存中的数据写到磁盘。
@@ -4084,7 +4119,7 @@ addr2line -e 文件名 -f ：显示对应的fun对应的行数
 gdb vmlinux-debug： b 0x000000 ，在这里打断点就知道对应的地址的代码行了
 ar crs libxx.a x.o  y.o  打包静态库
 ar -x  libxx.a  解压静态库
-objdump -d a.out  反汇编二进制为汇编代码
+nm -D a.out  查看二进制中的符号表
 objcopy -j .text  a.out  onlytexta.out   只抽出来.text段放到后面的文件中
 
 ```
@@ -4116,26 +4151,39 @@ vim中左括号跳右括号：%
 - 角色  :文件-object    程序-system   用户-
 - 类型  
 - 进程 domain
-### pcb mmu
-pcb的本质就是个400多行的结构体描述进程
+### 
+    task_struct 进程描述符，内涵mm_struct 内存描述符
+	mm_struct描述对于当前进程4G内存是怎么分配的
+	每个进程对应一个task_struct
 	进程id
 	状态：就绪、运行、终止、挂起(等待、阻塞、暂停不占用cpu)
-	进程切换时保存cpu中的reg（上下文）
+	
 	虚拟地址与物理地址的映射(mmu做的然后存到这里)
+	虚拟地址4g通过页表（映射表）映射到物理内存，页表由os维护，并被内存单元mmu引用，每个进程都有自己的页表
+所以，每个进程感觉自己独享4g地址空间，并没有这么多的物理地址，仅代表它可以支配这4g。
+	
 	changedir（改变当前进程的工作目录）
 	控制终端的信息
 	进程可用的资源：ulimite -a
 				  (open files:1024 最多能同时打开这么多文件)
 				  (stack size：栈大小)
-				  用户栈一般是8M
-				  内核是8K
+				  进程栈、用户栈一般是8M：初始化时由编译器链接器计算出，但是会动态增加（即增加页表）
+				  内核是8K或4k
 
 				  用户栈：fun运行提供空间
-				  内核栈：保存register的值
+				  内核栈：保存register的值，头区域存放当前进程的task_struct进程描述符
+				  
+	
+	线程栈：（轻量化的进程，与其他线程共享mm_struct中的资源）
+	线程栈从进程的地址空间中映射出来一段区域，用完就没了，不会动态增加。对于线程mm是共享的但是线程栈不是共享的。
+	
+	进程与线程不共享内核栈，为啥每个进程需要单独的内核栈呢？
+		假设进程a，陷入内核态时刚好休眠让出CPU，进程b也刚好陷入内核态，若内核栈只有1个，切换时内核栈要存进程a的数据，
+			b运行内核栈也需要压栈，很可能溢出，丢失数据
 
 	mmu负责进程的虚拟内存与物理内存的映射，每个进程一旦运行，它就开始工作了
 	mmu的三级映射：
-	a.out-->页目录-->页表-->物理内存地址
+	a.out-->页目录-->页表-->物理内存地址  页表就是描述虚拟内存与物理内存的映射
 
 ### 开机自动挂载在/etc/fatab设置
 
@@ -4143,7 +4191,7 @@ pcb的本质就是个400多行的结构体描述进程
 
 ​                    类型 ISO           挂载方式   只读  
 
-进程上下文，中断上下文
+
 
 ### make
 
@@ -4373,7 +4421,7 @@ LE：逻辑区域，是逻辑分区中的可分配的最小单元 === PE，物�
 创建好fs之后挂载：mount /dev/openeuler/root  /  挂载后即可使用，为了开机自动挂载修改/etc/fstab文件
     			mount /dev/lvpath1  /home
 根目录空间不够了：如果此时vg还有剩余的PE，可以：
-lvextend  l+1122(空闲PE，可通过vgdiaplay查询)  /dev/openeuler/root   扩了硬件
+lvextend  -l+1122(空闲PE，可通过vgdiaplay查询)  /dev/openeuler/root   扩了硬件
 ext2online /    同时扩容fs，扩fs   扩fs的命令有可能是下面的
 resize2fs /dev/mapper/open-root  扩展fs
 /dev/mapper/openeuler-root ==== /dev/openeuler/root是软连接
@@ -4404,12 +4452,6 @@ sr0-------光驱
 	mount /dev/sdb1 /home/jl/newdisk   挂载成功
 最后记得mount -a 启动自动挂载
 Elapesed time：运行时间
-
-***扩展fs的方法
-pvs  
-vgs
-lvs  简单的显示
-
 
 
 ### 系统移植
@@ -4575,9 +4617,6 @@ crontab -r  删除任务  执行成功没有输出log，若再执行就会输出
 
 
 ```
-
-### 20201101
-
 ```c
 cat /dev/mice   当鼠标移动、按键按下的时候便会输出log
 /boot 挂载点挂载的（hd0,1） 如果将/boot umount系统依然可以启动进入grub界面，因为此阶段是bios或efi硬件控制的，bios可以找到第一个启动盘的位置，就可以进入grub
@@ -4783,12 +4822,6 @@ B->ping a的ip                       上面的a的界面收到消息，不阻塞
 某台CNA过载(虚拟机太多了)则这些虚拟机上的服务就会很卡，客户体验不好
 或发生故障，
 则可以将部分虚拟机迁移到另一台CNA上
-华为云：
-公有云：huawei cloud
-私有云：原来叫fusion cloud，后来叫hcs(华为云stack)。软硬件都搭建在客户机房，客户自己管理。-fs。manage one运营管理
-混合云：华为云stack online--硬件软件都搭建在客户机房，但是拉根线由华为管理运维
-
-
 fusion computer:融合计算
 nfv：网络虚拟化
 trace：跟踪
@@ -5215,6 +5248,18 @@ rc.d下有7个目录，分别放置os启动到不同启动级别对应的脚本�
 						切换时需要用栈保护现场
 glibc 提供的各种syscall比较通用。
 
+进程切换，任务切换，上下文切换：CPU对进程1的时间片到了或者进程1休眠，切换CPU到进程2
+尽管每个进程有自己的进程空间，但是共享CPU，切换前需要将之前的进程的
+**任务函数体，栈指针位置，当前CPUreg值
+
+任务：送货
+进程：送货所需资源：道路+加油站+车+修车厂
+线程：开车送货
+
+每次函数调用前要压栈，存储程序执行完的返回地址，reg不够用时会将数据压栈到mem
+
+
+
 syscall怎么执行的？
 read/write/open----》通过swi/svc指令软中断跳到对应的sys_read/sys_write/sys_open
 如何分别打开的是哪种文件呢？
@@ -5453,3 +5498,9 @@ serial串口日志在/var/log/libvirtd/qemu/virtname.seriallog中，可以看到
 观察fstab中的分区是否都已经成功挂载。
 若磁盘挂载有问题，会进入紧急模式，umount有问题的挂载点，然后fsck -y /dev/mapper-root即可修复
 修复完成再次执行fsck /dev/mapper-root可以看到此分区已经clean，说明磁盘已经被修复
+对于xfs文件系统修复的时候用的不是fsck命令，有专用的命令，需要自己查一下。
+
+oom：out of memory os内部没内存了频繁杀死进程
+/sys/devices/system/cpu/cpux/online   echo 1或0进去可以将对应的CPU离线或者上线（磁盘、内存条也类似）
+/sys/bus/platform/drivers/各种驱动安装后在这里可见
+/sys/bus/platform/devices --/sys/devices/platform 内核根据设备树解析出来的部分device_node结构体转化而来的platform_dev结构体
