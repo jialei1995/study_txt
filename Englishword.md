@@ -45,5 +45,8 @@ territory  领土
 finite  有限的
 infinite  无限的
 recursion  递归
+fotify  驻守，设防
+ambigous  不明确的
+rectify  纠正
 ```
 
