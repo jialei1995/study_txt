@@ -1809,150 +1809,6 @@ linux内核移植：
 		CFLAGS+=-s -ftrapv -g等等。
 		
 		#program comment  编译期间可以打印调试信息。
-*************************************************************************************		
-QT:
-	Qwidget:是其他两个的父类，最简单的空窗口，他的父类是所有对象的祖宗QOBJECT.
-	Qmainwindow：多出来菜单栏、工具栏
-	Qdialog：对话框（里面一般按钮较少，登陆页面啦、出错界面、下一步界面）
-	main函数中的QApplication a(argc, argv);只能有1个应用程序对象
-	.pro中的target=test生成的exe的名称就是text.exe
-	Q_OBJECT表示允许使用信号和槽机制
-
-	函数声明与定义中只有1个里面允许有默认参数=0...
-	btn是对象指针的话btn->show();btn就成独立的了。  或者btn.show（）；btn是对象
-	btn的op：settext（“设置文本”）；
-			setparent（this）；--------------直接Qpushbutten * btn = new Qpushbutten（“文本”，this）；设置到对象树中
-			move（100,100）；坐标从左上角开始数
-			resize（100,100）；
-
-	qt里面私有属性里面一般都是qpushubutten * btn；然后在构造函数中new出来的
-	也可以在类里面直接QPushButton btn;在构造函数中settext，setparent
-
-	窗口设置标题直接：setwindowtitle（“窗口标题”）；
-	设置固定的窗口大小：setfixedsize（600,400）；
-	调整窗口大小。直接resize（600,400）；其实可以this->resize()。也可以默认直接resize就可以。
-
-	qDebug（）<<“sadasd”；
-	或者qDebug（“sadasdd”）；自动换行的
-
-	connect(&btn,&QPushButton::clicked,this,&QPushButton::close);
-			信号发出对象地址				信号接收对象地址
-			信号类型地址					槽函数地址
-	connect(sock,SIGNAL(connected()),this,SLOT(on_connected()));
-			SIGNAL（默认会选择sock的父类里面的信号，不用再加作用域了括号中的函数要加参数类型
-	connect(sock,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(on_error()));
-								这是error信号的参数类型，不用加形参名		
-
-	connect(sock,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(on_error()));
-	connect连接中信号只写类型不写形参，slot可以参数比signal少。
-				槽函数声明的时候信号也可以只写类型，不写形参，在定义的时候再写形参。
-	注意自定义的类才可以自定义信号和槽函数&&&&&&：自定义槽函数时要在头文件中加：---public slots:   信号加到signals：下。自定义的信号只需要这这里声明一下就好了。 
-    								 void btn_deal();
-   	自定义的信号怎么触发这个信号呢？？
-   	exp:在widget中connect(t1,&Teachar::hungry,st,&Student::eat);
-   	可以在widget中定义一个普通的函数，调用这个函数就会emit signal
-   	{
-   		emit t1->hungry();		//通过在widget的构造函数中调用这个函数去发信号。构造函数在创建mywidget的时候就会执行内部所有的东西
-   	}
-
-    如果自定义的类不属于任何别控件，应该让他继承与QObject-----这样他就不用管自己的内存释放了。这个类会管理内存的...
-
-    connect信号可以连接信号的***，触发信号1则触发信号2
-    QString转char*；s.toutf8().data();->bytearray->char*
-
-
-    1个新号怎么调用多个槽函数呢？用lambda表达式
-    lambda表达式：定义并创建匿名函数对象  
-    [=](){		[]中放：	=等号用的最多  	&
-    	btn->settext("12");
-    };中括号小括号大括号
-	connect(btn,&QPushubutton::clicked,this,[=]()
-	{
-		this->close();
-		emit 另一个信号()；
-		...外面的变量函数都能在这里面调用。。。
-	})
-	如何新建另一个窗口？？connect按钮按下则调用lambda表达式【=】（）{
-		QDialog dlg；
-		dlg。exec（）；就ok了
-	}
-	qt资源文件：添加文件->resource file->open in edit->设置路径名，以后用资源的时候复制路径就可以
-
-	qt样式表：控件的样式
-		设置按键，label，主窗口的样子-背景字体...
-	qt的lable还可以显示图片，gif，可跳转的域名
-		
-
-	事件类似一个个的软件中断*****	
-	qt中所有的事件类都继承与qevent	，bool event（QEvent*）ev）函数不直接处理事件，而是按照事件类型分派给
-	特定的事件处理函数。在函数体内把自己想处理的事处理一下，其他事件交给父类处理，你不可能处理所有的事件。
-	qwidget中定义了很多事件处理函数都是虚的，可以在子类重新实现的。
-	protected ：
-	***事件不用connect，写好了发生就可以触发事件函数。	
-	QString str = QString("abc %1 ^_^ %2").arg(123).arg("mike");
-		str = abc 123 ^_^ mike  类似sprintf
-	鼠标按下事件：在一个mylabel的类中实现的
-	但是键盘按下的键得在mywidget中实现，因为键盘按下的事件只有主窗口才能收到，但是鼠标的按下事件是按在了label中，mylabel可以接收到
-	定时器也一种事件：timerevent。可以在mywidget中重写虚函数
-					同时定时器需要在mtwidget中去starttimer
-
-	图片：绘图看例子，很详细
-		QPmixmap pix；pix.load("路径")。设置参数
-		p.draw(0,0,pix);
-
-	
-	主窗口控制事件分发：
-			在mainwindow中：重定义event（）将传进来的实体化的QEvent *e事件，根据类型选择对应的处理函数
-								{
-									switch事件（e->type（））
-									 == xxx    mousemove事件；
-									 == xxx    closeevent事件；
-								}
-	连接sqlite：
-	messageBox:：warning（this，“wrong”）出错弹出对话框用到。
-SMTP:cmd 
->>telnet smtp.qq.com 25
-Trying 183.3.225.42...
-Connected to smtp.qq.com.
->>helo localhost
-250-newxmesmtplogicsvrsza8.qq.com-9.21.160.46-56014474
-250-SIZE 73400320
-250 OK
->>auth login
-334 VXNlcm5hbWU6
->>NjQyNTY3OTMz
-334 UGFzc3dvcmQ6
->>eWVjbG1hZWJ5bnprYmJjaA==
-235 Authentication successful
->>mail from:<642567933@qq.com>
-250 OK.
->>rcpt to:<iamleilei1234@163.com>
-250 OK
->>data
-354 End data with <CR><LF>.<CR><LF>.
->>From:<642567933@qq.com>
->>To:<iamleilei1234@163.com>
->>Subject:mail from telnet
-
-hello from telnet
-sadasdasdas
-dsfdsfsdfd
-vsdvdsvdss
->>.
-250 OK: queued as.
->>quit
-221 Bye.
-Connection closed by foreign host.
-
-	qt的静态库要自己编译所以一般使用动态库。
-	将写好的qt程序编译成release版本，copy生成的app.exe到一个新目录，qtshell，Qt命令行(左下角)
-			然后用windeployqt.exe ./app.exe操作，会将它需要的动态库文件都放到此文件夹
-			或者：cd /d D:\现在新建的存app.exe的目录   F:as\d\d\d\windeployqt.exe .\自己的.exe
-	代码编译不一定非要用qt软件内点击鼠标：
-			1.直接使用qmake.exe进行qmake，然后使用mingw32-make.exe进行make就会生成app.exe
-	在linux下可以直接安装需要的动态库就好了，apt-get，它会解决安装包的依赖问题。 
-	qt中函数alt+enter自动补全
-
 **************************************驱动开发******************************************
 	    make modules_install INSTALL_MOD_PATH= ~/rootfs	将模块安装到rootfs中  
 					则   ~/rootfs/lib/ 下多了1个/lib/modules文件夹
@@ -5550,3 +5406,157 @@ pro，内核中别的进程，如驱动中的read,write，由软硬中断区唤�
 如果要获取锁时获取不到，就会原地旋转，反复执行一条紧凑的寻韩检测指令，直到锁被释放自己可以获取
 所以，临界区必须小，操作必须短。
 自旋锁可以过滤的干扰，中断-spin_lock_irp(这类锁中断来了都抢不走)
+
+qt-----
+qmainwindow（菜单栏，工具栏）与qdialog（对话框）都是继承qwidget，
+qwidget的父类是所有对象的祖宗QOBJECT
+QApplication a(argc, argv);//应用程序对象，有且只有一个
+myWidget w; //实例化窗口对象
+ctrl+shift+↑/↓ 将当前行移动到上方或者下方
+同名的.h与.cpp切换，按键F4
+选中多行，按ctrl+i自动对齐多行
+查看帮助文档：打开bin文件夹下的assistant.exe 可以直接打开帮助文档
+Qdialog：对话框（里面一般按钮较少，登陆页面啦、出错界面、下一步界面）
+.pro中的target=test生成的exe的名称就是text.exe
+Q_OBJECT 有这个宏表示允许使用信号和槽机制
+函数声明与定义中只有1个里面允许有默认参数=0...
+	btn的op：settext（“设置文本”）；
+			setparent（this）；-------直接Qpushbutten * btn = new Qpushbutten（“文本”，this）；设置到对象树中
+			move（100,100）；坐标从左上角开始数
+			resize（100,100）；
+
+	qt里面私有属性里面一般都是qpushubutten * btn；然后在构造函数中new出来的
+	也可以在类里面直接QPushButton btn;在构造函数中settext，setparent
+
+	窗口设置标题直接：setwindowtitle（“窗口标题”）；
+	设置固定的窗口大小：setfixedsize（600,400）；
+	调整窗口大小。直接resize（600,400）；其实可以this->resize()。也可以默认直接resize就可以。
+
+	qDebug（）<<“sadasd”；
+	或者qDebug（“sadasdd”）；自动换行的
+对象树，创建的时候由上至下，析构的时候由下至上，只要是下级属于上级的对象，析构的时候父对象会帮你析构
+子对象的析构函数自己还是得去实现，只是这个函数的调用是父对象去管理的，并不是它帮忙实现的。
+
+can通信案例：
+https://blog.csdn.net/z609932088/article/details/84061467
+https://blog.csdn.net/weixin_30576859/article/details/95213928?utm_medium=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromMachineLearnPai2~default-2.control&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2~default~BlogCommendFromMachineLearnPai2~default-2.control
+
+	connect(&btn,&QPushButton::clicked,this,&QPushButton::close);
+			信号发出对象地址				信号接收对象地址
+			信号类型地址					槽函数地址
+	connect(sock,SIGNAL(connected()),this,SLOT(on_connected()));
+			SIGNAL（默认会选择sock的父类里面的信号，不用再加作用域了括号中的函数要加参数类型
+	connect(sock,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(on_error()));
+								这是error信号的参数类型，不用加形参名		
+
+	connect(sock,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(on_error()));
+	connect连接中信号只写类型不写形参，slot可以参数比signal少。
+				槽函数声明的时候信号也可以只写类型，不写形参，在定义的时候再写形参。
+	注意自定义的类才可以自定义信号和槽函数&&&&&&：自定义槽函数时要在头文件中加：---public slots:   信号加到signals：下。自定义的信号只需要这这里声明一下就好了。 
+    								 void btn_deal();
+   	自定义的信号怎么触发这个信号呢？？
+   	exp:在widget中connect(t1,&Teachar::hungry,st,&Student::eat);
+   	可以在widget中定义一个普通的函数，调用这个函数就会emit signal
+   	{
+   		emit t1->hungry();		//通过在widget的构造函数中调用这个函数去发信号。构造函数在创建mywidget的时候就会执行内部所有的东西
+   	}
+
+    如果自定义的类不属于任何别控件，应该让他继承与QObject-----这样他就不用管自己的内存释放了。这个类会管理内存的...
+
+    connect信号可以连接信号的***，触发信号1则触发信号2
+    QString转char*；s.toutf8().data();->bytearray->char*
+
+
+    1个新号怎么调用多个槽函数呢？用lambda表达式
+    lambda表达式：定义并创建匿名函数对象  
+    [=](){		[]中放：	=等号用的最多  	&
+    	btn->settext("12");
+    };中括号小括号大括号
+	connect(btn,&QPushubutton::clicked,this,[=]()
+	{
+		this->close();
+		emit 另一个信号()；
+		...外面的变量函数都能在这里面调用。。。
+	})
+	如何新建另一个窗口？？connect按钮按下则调用lambda表达式【=】（）{
+		QDialog dlg；
+		dlg。exec（）；就ok了
+	}
+	qt资源文件：添加文件->resource file->open in edit->设置路径名，以后用资源的时候复制路径就可以
+
+	qt样式表：控件的样式
+		设置按键，label，主窗口的样子-背景字体...
+	qt的lable还可以显示图片，gif，可跳转的域名
+		
+
+	事件类似一个个的软件中断*****	
+	qt中所有的事件类都继承与qevent	，bool event（QEvent*）ev）函数不直接处理事件，而是按照事件类型分派给
+	特定的事件处理函数。在函数体内把自己想处理的事处理一下，其他事件交给父类处理，你不可能处理所有的事件。
+	qwidget中定义了很多事件处理函数都是虚的，可以在子类重新实现的。
+	protected ：
+	***事件不用connect，写好了发生就可以触发事件函数。	
+	QString str = QString("abc %1 ^_^ %2").arg(123).arg("mike");
+		str = abc 123 ^_^ mike  类似sprintf
+	鼠标按下事件：在一个mylabel的类中实现的
+	但是键盘按下的键得在mywidget中实现，因为键盘按下的事件只有主窗口才能收到，但是鼠标的按下事件是按在了label中，mylabel可以接收到
+	定时器也一种事件：timerevent。可以在mywidget中重写虚函数
+					同时定时器需要在mtwidget中去starttimer
+
+	图片：绘图看例子，很详细
+		QPmixmap pix；pix.load("路径")。设置参数
+		p.draw(0,0,pix);
+
+	
+	主窗口控制事件分发：
+			在mainwindow中：重定义event（）将传进来的实体化的QEvent *e事件，根据类型选择对应的处理函数
+								{
+									switch事件（e->type（））
+									 == xxx    mousemove事件；
+									 == xxx    closeevent事件；
+								}
+	连接sqlite：
+	messageBox:：warning（this，“wrong”）出错弹出对话框用到。
+SMTP:cmd 
+>>telnet smtp.qq.com 25
+Trying 183.3.225.42...
+Connected to smtp.qq.com.
+>>helo localhost
+250-newxmesmtplogicsvrsza8.qq.com-9.21.160.46-56014474
+250-SIZE 73400320
+250 OK
+>>auth login
+334 VXNlcm5hbWU6
+>>NjQyNTY3OTMz
+334 UGFzc3dvcmQ6
+>>eWVjbG1hZWJ5bnprYmJjaA==
+235 Authentication successful
+>>mail from:<642567933@qq.com>
+250 OK.
+>>rcpt to:<iamleilei1234@163.com>
+250 OK
+>>data
+354 End data with <CR><LF>.<CR><LF>.
+>>From:<642567933@qq.com>
+>>To:<iamleilei1234@163.com>
+>>Subject:mail from telnet
+
+hello from telnet
+sadasdasdas
+dsfdsfsdfd
+vsdvdsvdss
+>>.
+250 OK: queued as.
+>>quit
+221 Bye.
+Connection closed by foreign host.
+
+	qt的静态库要自己编译所以一般使用动态库。
+	将写好的qt程序编译成release版本，copy生成的app.exe到一个新目录，qtshell，Qt命令行(左下角)
+			然后用windeployqt.exe ./app.exe操作，会将它需要的动态库文件都放到此文件夹
+			或者：cd /d D:\现在新建的存app.exe的目录   F:as\d\d\d\windeployqt.exe .\自己的.exe
+	代码编译不一定非要用qt软件内点击鼠标：
+			1.直接使用qmake.exe进行qmake，然后使用mingw32-make.exe进行make就会生成app.exe
+	在linux下可以直接安装需要的动态库就好了，apt-get，它会解决安装包的依赖问题。 
+	qt中函数alt+enter自动补全
+
+	
