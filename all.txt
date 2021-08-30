@@ -254,6 +254,7 @@ io：
 					要打开myfifo得两个进程都open-myfifo才能打开，只有1个进程不能成功打开myfifo
 					两个进程要通讯，都必须打开同一个mkfifo才可以。
 			信号： 通过执行1个进程调用（kill函数 ）给另1个进程发信号
+			     信号是用户空间的概念，无法为内核空间的线程传递信号----重要知识点
 						发送：kill（信号类型，进程号）   -9终止进程的时候不会刷新缓冲区的
 							 raise（信号类型）把信号发给自己，是kill(9,getpid());	
 							 alarm（5）；定时5s后给自己发信号。只会给自己发。 
@@ -338,7 +339,11 @@ copy 1.txt 2.txt 相当于linux的cp
 				I/S代表可中断睡眠，一般最多啦（等待socket链接，等待read，write等等）
 				O不可中断睡眠，内核态原子操作等等，kill -9都杀不死的进程
 				T sigstop信号，sigcontinue将此状态变成R，例如GDB调试时等待输入。
-				D 处于D状态的进程可以通过查看/proc/pid/stack 文件下的调用栈。
+				D 处于D状态的进程可以通过查看/proc/pid/stack 文件下的调用栈
+				d状态是进程执行syscall之后在内核空间还未返回，阻塞住了，此时这种进程无法被杀死，因为kill只能给用户空间的
+			进程发信号，无法给内核空间的线程发信号，而此时进程已经陷入了内核态了
+			僵尸进程是Z状态，也是杀不死的。D状态也是杀不死的
+			
 	ps -axo stat pid,ppid,pgid==pgrp,comm  查看进程组号，组id可能与ppid一样也可能不一样
 	ps j也能查pgid号
 	ps -p 进程id -o pgrp  看进程所属组id
@@ -2149,6 +2154,8 @@ spi:时钟是主机产生的，每个spi周期传输1bit数据
 		相位：0--->前沿采样后沿输出    1--->前沿输出（发送）后沿采样（获取）（通过这个双方同步）（沿：上升沿或下降沿）根据sck的沿
 		速度：目前最快3.4M/s  输入口速度48M，所以要预分频。确定波特率（sck）
 		First bit：LSB/MSB
+		（lsb不是低位先传，而是低字节先传，是以字节为单位的）
+		同理msb：不是高位先传，应该是高字节先传，一般的机器的存储都是lsb
 		主机驱动mosi信号----采样miso信号
 		spi的通讯双方的极性与相位要一致（配置）
 	编程时每个spi模块都有自己的一套寄存器，就地址不一样，名字功能都基本一样
@@ -2385,7 +2392,9 @@ void vfree(const void *addr)
 内核为了满足任意数量的内存使用请求，创建了由各种不同固定大小的内存块组成的内存对象池  当kmalloc申请内存空间时，内核就会将一个刚好足够大的空闲内存块分配出来。比如要申请100字节，kmalloc就会返回一个128字节的内存块
 在4k字节大小页面的系统上，分配的最小内存块是32字节，最大128k字节
 
-后备高速缓存（slab）
+slab是内存分配器，malloc的内存就是它分配的
+页表是建立虚拟地址与物理地址映射的表，这个映射关系是mmap建立的，新的映射关系一建立就会被放进页表中
+
 设备驱动程序如果常常反复使用同样大小的内存块，可以自己创建一个内存池
 
 内核空间内存：
@@ -3048,15 +3057,6 @@ markdown文件：
 代码说明：'> '加注释内容
 退出当前行的行首的引用：按向下翻页键
 可以将文件导出为html，可以以网页打开。
-
-****************************************圈复杂度***************************************************8
-减少1函数中的判断if  switch  （不可以if if if 连这写）
-	将这个函数中的需要判断的部分提取出来重装函数。降低1个模块的复杂度
-	case里的东西写成int arr【10】；循环对比
-www.lizard.ws  代码拖进去，可以看代码圈复杂度
-sudo apt-get install python-pip
-pip install lizard
-$:lizard weekday.c 可以显示圈复杂度
 
 **********************总复习********************
 针对指针判空：if(p == NULL) 或 if(p == 0) 其实NULL 就是0
@@ -3815,11 +3815,11 @@ dup：复制文件描述符，本来一个打开的文件只对应1个文件描�
     int dup2(int newfd, int oldfd); 重定向打开的oldfd的数据到打开的newfd。 inode号都是test1的号。
 
 strace ./a.out  查看a.out中有哪些系统调用（此时的a.out不用+-g参数就可以）显示的整个程序的syscall
+strace -o 1.txt ./a.out  将a.out的strace调用写入文件，直接用>重定向是不可以的
 backtrace 看当前位置使从main几层过来的，调用栈
 strace -e open,close ./a.out 只查看a.out中的open，close这两种syscall
 strace ./a.out   查看每个syscall花费的时间
-strace ping baidu.com   查看此过程中的syscall
-strace dmesg：查看dmesg是怎么打印到屏幕上的
+
 ping谁谁就会给你回消息，a->b,b->a  ICMP报文
 MTU值大小：网络包的大小。若配置发的包不允许拆包，则MTU为1500的机器不能接收数据包大于1500的包
 ping -s 大小（byte） -M do 目的ip  限制一次ping的时候发包的大小
@@ -3841,7 +3841,6 @@ ss -at:显示tcp连接，类似netstat
 -p 显示应用程序与端口的对应关系
 
 access  判断文件是否存在的系统调用
-strace ./a.out  查看a.out的系统调用，可以查看各个系统调用的参数返回值，消耗的时间
 ltrace （lib trace）查看库的调用，跟踪库的调用(查看每个函数的来源在那个动态库中，每个函数的位置)
 gdb -p pid 调式已在运行的进程
 gdb 中backtrace：查看当前的调用栈。
@@ -4852,10 +4851,15 @@ df -i 查看磁盘的inode使用情况，inode用完的话就不可以再创建�
 lsscsi：查看挂载到不同scsi控制器的磁盘信息(1个SCSI控制器上可以挂多个磁盘)
 lspci：查看pci总线上的控制器（SCSI控制器就会挂载PCI总线上）
 
-python：
+调用c中的动态库方法：
+1. c文件中引用头文件
+2.python：
 from ctypes import CDLL
 lib=CDLL("/usr/lib/xxx")  加载动态库,拿到句柄
 lib.fun1() lib.fun2()可以直接调用c的库
+3.c++中在函数声明时用extern 'C'将函数的声明括起来
+4. 对于c与c++都要用到的函数，在头文件中声明的时候加__cpluscplus宏定义。 
+
 
 几个网卡会组成bond：增加带宽
 安装bonding模块，修改bond的配置文件后才能bond网卡：ifenslave bond0 eth0 eth1
@@ -5216,6 +5220,8 @@ dpkg -S file：查看文件对应的deb软件包
 dpkg -l ：列出所以已安装的deb包
 dpkg -r/-P:删除包remove,purge
 
+apt-cache search all：查看当前apt源支持安装的deb包
+
 swap 空间是磁盘空间，不是硬件的内存，这种磁盘可以当做内存用
 swappiness=0：先用物理mem，然后再用swap的mwm
 swappiness=100：先用磁盘，这样的os速度很慢，会很卡
@@ -5555,8 +5561,26 @@ Connection closed by foreign host.
 			然后用windeployqt.exe ./app.exe操作，会将它需要的动态库文件都放到此文件夹
 			或者：cd /d D:\现在新建的存app.exe的目录   F:as\d\d\d\windeployqt.exe .\自己的.exe
 	代码编译不一定非要用qt软件内点击鼠标：
-			1.直接使用qmake.exe进行qmake，然后使用mingw32-make.exe进行make就会生成app.exe
-	在linux下可以直接安装需要的动态库就好了，apt-get，它会解决安装包的依赖问题。 
+			1.直接使用qmake.exe进行qmake，然后使用mingw32-make.exe进行make就会生成app.exe。 
 	qt中函数alt+enter自动补全
-
 	
+
+
+cpu中的cache速度超快但是只有10+k大小
+内存中的buffer/cache	有部分能释放-别的程序可以直接从这里获取内存，有部分不能被直接释放
+
+函数只在某个.c文件中使用的函数应当使用static修饰--这类函数无需声明在.h中，因为它只是给当前的c文件去用的
+c文件中可以平白无故的将一段代码用{}括起来，这个不是语法错误。
+c中true，false 直接包含stdbool.h即可。这里true=1lfalse=0
+
+CAN总线知识：
+CAN2.0A：只支持收发11位标识符（id）的标准帧
+CAN2.0B:支持收发11位id的标准帧或者29位id的扩展帧
+远程帧不发数据段
+1.多主控制，多个主机可以开始发送消息，如果多个主机同时发起总线请求时，高优先级id的单元获得优先权；失利的单元则停止发送而进行接收工作
+，并在总线再次空闲之前不再发报文
+2.同一网络中所有单元的通信速度一致
+3.所有unit有检错功能，检出错误会立即通知其他unit，正在发送消息的unit一旦检出错，会强制终止当前发送
+
+5种帧：数据帧，远程帧，错误帧，过载帧，帧间隔
+帧结构见图：
