@@ -57,3 +57,8 @@ set   wildmode=list:longest,full
 set   nowrap
 
 set  tags=/usr/include/tags
+
+可以直接在 github上搜vim的config相关的项目去 配置自己的虚拟机  使vim简单配置使用
+
+测试环境可以直接在网页中打开
+只有1个页面，编辑的时候可以通过：code  test.c  在vscode 中编辑
